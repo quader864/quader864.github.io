@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body  class="login-body">
+  <div class="login-container">
+    <div class="login-image-side">
+      <div>
+        <button onclick="location.href='index.html'" class="login-back-button">&larr; Back to website</button>
+      </div>
+      <div>
+        <h2 class="login-heading">ما ازین پولا زیاد داریم</h2>
+        <p class="login-subtext">Beautiful login form designed by Quader</p>
+      </div>
+    </div>
+    <div class="login-form-side">
+      <h1 class="login-title">Create an account</h1>
+      <p class="login-login-text">Already have an account? <a href="#" class="login-link">Log in</a></p>
+      <form>
+        <input type="text" class="login-input" placeholder="First name" required />
+        <input type="text" class="login-input" placeholder="Last name" required />
+        <input type="email" class="login-input" placeholder="Email" required />
+        <input type="password" class="login-input" placeholder="Enter your password" required />
+        <div class="login-terms">
+          <input type="checkbox" id="terms" required /> <label for="terms">I agree to the Terms & Conditions</label>
+        </div>
+        <button type="submit" class="login-button">Create account</button>
+      </form>
+      <div class="login-alt-login">
+        <p>or sign up with</p>
+        <button class="login-alt-button">Google</button>
+        <button class="login-alt-button">Apple</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

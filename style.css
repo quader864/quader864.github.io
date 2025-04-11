@@ -120,3 +120,120 @@ footer {
         transform: translateY(0);
     }
 }
+/* login page */
+
+
+/* ========== LOGIN PAGE STYLES ========== */
+
+.login-body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0b0f13;
+    color: #00d1ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .login-container {
+    display: flex;
+    max-width: 900px;
+    width: 100%;
+    background: #171c2b;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  }
+  
+  .login-image-side {
+    width: 50%;
+    background: url(assets/pexels-dave-tombi-7705878.jpg) no-repeat center center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+  }
+  
+  .login-heading {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .login-subtext {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+  
+  .login-back-button {
+    background: none;
+    border: none;
+    color: #000000;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .login-form-side {
+    width: 50%;
+    padding: 40px;
+  }
+  
+  .login-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .login-login-text {
+    font-size: 14px;
+    margin-bottom: 30px;
+  }
+  
+  .login-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 8px;
+    background: #09122C;
+    color: #fff;
+  }
+  
+  .login-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00d1ff;
+    border: none;
+    color: #0b242e;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .login-terms {
+    font-size: 12px;
+    margin-top: 10px;
+    color: #cecece;
+  }
+  
+  .login-alt-login {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .login-alt-button {
+    margin: 5px;
+    padding: 10px 20px;
+    background: #2e2a3f;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .login-link {
+    color: #ffffff;
+    text-decoration: none;
+  }
+  

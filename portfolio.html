@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio | Devansh</title>
+  <link rel="stylesheet" href="style.css" />
+ 
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.36/dist/lenis.min.js"></script>
+
+
+</head>
+<body class="portfolio-body">
+
+
+  <header class="portfolio-navbar">
+    <div class="portfolio-logo">
+      <img src="profile.jpg" alt="Devansh" class="portfolio-avatar" />
+      <span>Devansh</span>
+    </div>
+    <nav>
+      <ul class="portfolio-nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#1">About Me</a></li>
+        <li class="portfolio-dropdown">
+          <a href="#">Designs</a>
+          <ul class="portfolio-dropdown-menu">
+            <li><a href="#">Websites</a></li>
+            <li><a href="#">Graphic Designs</a></li>
+            <li><a href="#">Video Projects</a></li>
+            <li><a href="#">3D Modeling</a></li>
+            <li><a href="#">All Designs ☆</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Portfolio</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </nav>
+    <a href="#" class="portfolio-connect-btn">Let’s Connect</a>
+  </header>
+
+  <main class="portfolio-hero">
+    <h1 class="portfolio-title">PORTFOLIO</h1>
+    <div class="portfolio-signature">✍️ <span>Devansh</span></div>
+  </main>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section id="1" class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <section class="portfolio-intro">
+    <h2 class="portfolio-intro-title">Welcome to My Portfolio</h2>
+    <p class="portfolio-intro-text">Explore my work and projects that showcase my skills and creativity.</p>
+  </section>
+  <script>
+    const lenis = new Lenis({
+      duration: 0.3,
+      easing: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      smooth: true,
+      smoothTouch: true
+    });
+  
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+  
+    requestAnimationFrame(raf);
+  </script>
+  
+</body>
+</html>

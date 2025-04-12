@@ -16,6 +16,10 @@ body {
     overflow-x: hidden;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 header {
     display: flex;
     justify-content: space-between;
@@ -236,4 +240,128 @@ footer {
     color: #ffffff;
     text-decoration: none;
   }
-  
+  /* portfolio *//* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.portfolio-body {
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(ellipse at top, #011f35, #000);
+  color: white;
+  min-height: 100vh;
+  padding-top: 1rem;
+}
+
+/* Navbar */
+.portfolio-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  max-width: 90%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.portfolio-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.portfolio-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.portfolio-nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.portfolio-nav-links a {
+  color: white;
+  text-decoration: none;
+  position: relative;
+}
+
+.portfolio-nav-links li:hover > a {
+  color: #00aaff;
+}
+
+/* Dropdown Menu */
+.portfolio-dropdown {
+  position: relative;
+}
+
+.portfolio-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 2rem;
+  left: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.portfolio-dropdown-menu li {
+  margin: 0.5rem 0;
+}
+
+.portfolio-dropdown:hover .portfolio-dropdown-menu {
+  display: block;
+}
+
+.portfolio-connect-btn {
+  border: 1px solid white;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: white;
+  transition: 0.3s ease;
+}
+
+.portfolio-connect-btn:hover {
+  background: #00aaff;
+  color: black;
+}
+
+/* Hero Section */
+.portfolio-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10vh;
+  text-align: center;
+}
+
+.portfolio-title {
+  font-size: 8rem;
+  font-weight: bold;
+  position: relative;
+  letter-spacing: 0.2rem;
+  line-height: 1.1;
+}
+
+.portfolio-signature {
+  font-family: "Brush Script MT", cursive;
+  font-size: 1.5rem;
+  color: yellow;
+  margin-top: 1rem;
+}

@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response.status === 201) {
                     alert("✅ Account created!");
                     setTimeout(() => {
-                        window.location.href = `/users/${encodeURIComponent(email)}`;
+                        window.location.href = `https://api-verifier.onrender.com/users/${encodeURIComponent(email)}`;
                     }, 1000);
                 } else {
                     alert("❌ " + data.message);

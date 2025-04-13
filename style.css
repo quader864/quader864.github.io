@@ -124,12 +124,12 @@ footer {
         transform: translateY(0);
     }
 }
-/* login page */
+/* signup page */
 
 
-/* ========== LOGIN PAGE STYLES ========== */
+/* ========== signup PAGE STYLES ========== */
 
-.login-body {
+.signup-body {
     font-family: 'Inter', sans-serif;
     background-color: #0b0f13;
     color: #00d1ff;
@@ -139,7 +139,7 @@ footer {
     height: 100vh;
   }
   
-  .login-container {
+  .signup-container {
     display: flex;
     max-width: 900px;
     width: 100%;
@@ -149,7 +149,7 @@ footer {
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   }
   
-  .login-image-side {
+  .signup-image-side {
     width: 50%;
     background: url(assets/pexels-dave-tombi-7705878.jpg) no-repeat center center;
     background-size: cover;
@@ -159,17 +159,17 @@ footer {
     padding: 20px;
   }
   
-  .login-heading {
+  .signup-heading {
     font-size: 18px;
     font-weight: 600;
   }
   
-  .login-subtext {
+  .signup-subtext {
     font-size: 14px;
     opacity: 0.8;
   }
   
-  .login-back-button {
+  .signup-back-button {
     background: none;
     border: none;
     color: #000000;
@@ -177,22 +177,22 @@ footer {
     cursor: pointer;
   }
   
-  .login-form-side {
+  .signup-form-side {
     width: 50%;
     padding: 40px;
   }
   
-  .login-title {
+  .signup-title {
     font-size: 24px;
     margin-bottom: 10px;
   }
   
-  .login-login-text {
+  .signup-signup-text {
     font-size: 14px;
     margin-bottom: 30px;
   }
   
-  .login-input {
+  .signup-input {
     width: 100%;
     padding: 12px;
     margin-bottom: 20px;
@@ -202,7 +202,7 @@ footer {
     color: #fff;
   }
   
-  .login-button {
+  .signup-button {
     width: 100%;
     padding: 12px;
     background-color: #00d1ff;
@@ -214,19 +214,19 @@ footer {
     margin-top: 10px;
   }
   
-  .login-terms {
+  .signup-terms {
     font-size: 12px;
     margin-top: 10px;
     color: #cecece;
   }
   
-  .login-alt-login {
+  .signup-alt-signup {
     margin-top: 20px;
     text-align: center;
     font-size: 14px;
   }
   
-  .login-alt-button {
+  .signup-alt-button {
     margin: 5px;
     padding: 10px 20px;
     background: #2e2a3f;
@@ -236,7 +236,7 @@ footer {
     cursor: pointer;
   }
   
-  .login-link {
+  .signup-link {
     color: #ffffff;
     text-decoration: none;
   }

@@ -11,7 +11,6 @@ const observer = new IntersectionObserver((entries) => {
 
 sections.forEach(section => observer.observe(section));
 
-
 // === Signup Form Logic (only runs on signup page) ===
 document.addEventListener("DOMContentLoaded", () => {
     const signupForm = document.getElementById("signupForm");
@@ -25,22 +24,34 @@ document.addEventListener("DOMContentLoaded", () => {
             const email     = document.getElementById("email").value;
             const password  = document.getElementById("password").value;
 
-            const response = await fetch("https://api-verifier.onrender.com/web-register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ firstName, lastName, email, password })
-            });
+            try {
+                const response = await fetch("https://api-verifier.onrender.com/web-register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ firstName, lastName, email, password })
+                });
 
-            const data = await response.json();
-            const msg = document.getElementById("message");
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Non-OK response:", errorText);
+                    alert("❌ Something went wrong with the server.");
+                    return;
+                }
 
-            if (response.status === 201) {
-                msg.innerText = "✅ Account created!";
-                setTimeout(() => {
-                    window.location.href = `/users/${encodeURIComponent(email)}`;
-                }, 1000);
-            } else {
-                msg.innerText = "❌ " + data.message;
+                const data = await response.json();
+
+                if (response.status === 201) {
+                    alert("✅ Account created!");
+                    setTimeout(() => {
+                        window.location.href = `/users/${encodeURIComponent(email)}`;
+                    }, 1000);
+                } else {
+                    alert("❌ " + data.message);
+                }
+
+            } catch (err) {
+                console.error("Fetch error:", err);
+                alert("❌ Failed to register. Please try again.");
             }
         });
     }

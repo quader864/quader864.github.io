@@ -21,11 +21,11 @@
     <div class="signup-form-side">
       <h1 class="signup-title">Create an account</h1>
       <p class="signup-signup-text">Already have an account? <a href="#" class="signup-link">Log in</a></p>
-      <form>
-        <input type="text" class="signup-input" placeholder="First name" required />
-        <input type="text" class="signup-input" placeholder="Last name" required />
-        <input type="email" class="signup-input" placeholder="Email" required />
-        <input type="password" class="signup-input" placeholder="Enter your password" required />
+      <form id="signupForm">
+        <input type="text" class="signup-input" id="firstName" placeholder="First name" required />
+        <input type="text" class="signup-input" id="lastName" placeholder="Last name" required />
+        <input type="email" class="signup-input" id="email" placeholder="Email" required />
+        <input type="password" class="signup-input" id="password" placeholder="Enter your password" required />
         <div class="signup-terms">
           <input type="checkbox" id="terms" required /> <label for="terms">I agree to the Terms & Conditions</label>
         </div>
@@ -38,5 +38,6 @@
       </div>
     </div>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>

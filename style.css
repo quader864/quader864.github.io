@@ -1,130 +1,126 @@
-@font-face {
-    font-family: 'IRANSans';
-    src: url('https://cdn.fontiran.com/iransans.woff2') format('woff2');
+
+#my-scrollbar {
+  height: 100vh;
+  overflow: hidden;
 }
 
-@font-face {
-    font-family: 'Vazir';
-    src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font/dist/woff2/Vazir-Regular.woff2') format('woff2');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    font-family: 'IRANSans', 'Vazir', sans-serif;
-    background-color: #0d1117;
-    color: #ffffff;
-    overflow-x: hidden;
+body, html {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #121212;
+  color: #eaeaea;
+  overflow-x: hidden;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
+ 
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background: #161b22;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-color: #1e1e1e;
 }
 
-header h1 {
-    margin: 0;
-    color: #00d1ff;
-    font-size: 1.5rem;
+header .nav-item a {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-nav ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+header .nav-item a:hover {
+  color: #00aaff;
 }
 
-nav ul li {
-    margin: 0 15px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: #ffffff;
-    transition: color 0.3s;
-}
-
-nav ul li a:hover {
-    color: #00d1ff;
-}
-
+ 
 .hero {
-    text-align: center;
-    padding: 100px 20px;
-    background: radial-gradient(circle at top, #0d1117, #161b22);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('assets/pexels-dave-tombi-7705878.jpg');
+  background-size: cover;
+  background-position: center;
+  color: white;
 }
 
 .hero h2 {
-    font-size: 2.5rem;
-    color: #00d1ff;
+  font-size: 3rem;
+  font-weight: 700;
 }
 
 .hero p {
-    font-size: 1.2rem;
-    margin-top: 20px;
-    color: #a9b2c3;
+  font-size: 1.25rem;
+  font-weight: 300;
 }
 
+
 .section {
-    padding: 50px 20px;
-    text-align: center;
+  padding: 5rem 0;
 }
 
 .section h3 {
-    font-size: 2rem;
-    color: #00d1ff;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #00aaff;
 }
 
 .section p {
-    margin-top: 10px;
-    color: #a9b2c3;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #a9b2c3;
+}
+
+.bg-gradient {
+  background: linear-gradient(to right, #00aaff, #004d6b);
 }
 
 .glow-button {
-    margin-top: 30px;
-    padding: 10px 20px;
-    background: #00d1ff;
-    border: none;
-    border-radius: 5px;
-    color: #0d1117;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
+  background-color: #00aaff;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  border: none;
+  transition: 0.3s ease;
 }
 
 .glow-button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 209, 255, 0.6);
+  background-color: #004d6b;
+  box-shadow: 0px 0px 15px rgba(0, 170, 255, 0.6);
 }
+
+ 
+#contact a {
+  background-color: #ff6600;
+  padding: 0.8rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 50px;
+  color: white;
+  transition: 0.3s ease;
+}
+
+#contact a:hover {
+  background-color: #e44d00;
+  box-shadow: 0px 0px 15px rgba(255, 102, 0, 0.6);
+}
+
 
 footer {
-    text-align: center;
-    padding: 20px;
-    background: #161b22;
-    color: #a9b2c3;
+  background-color: #1e1e1e;
+  color: white;
 }
 
-.fade-in {
-    opacity: 0;
-    transform: translateY(30px);
-    animation: fadeIn 1s forwards;
-}
 
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@media (max-width: 768px) {
+  .hero h2 {
+    font-size: 2.5rem;
+  }
+
+  .section h3 {
+    font-size: 2rem;
+  }
+
+  .glow-button {
+    font-size: 1rem;
+  }
 }
-/* signup page */
 
 
 /* ========== signup PAGE STYLES ========== */

@@ -1,15 +1,42 @@
 // === Scroll Animation Logic ===
-const sections = document.querySelectorAll('.fade-in');
+// const sections = document.querySelectorAll('.fade-in');
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in');
-        }
-    });
+// const observer = new IntersectionObserver((entries) => {
+//     entries.forEach(entry => {
+//         if (entry.isIntersecting) {
+//             entry.target.classList.add('fade-in');
+//         }
+//     });
+// });
+
+// sections.forEach(section => observer.observe(section));
+
+import Scrollbar from 'smooth-scrollbar';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+const scrollbar = Scrollbar.init(document.querySelector('#my-scrollbar'), {
+    damping: 0.04, // try between 0.05 - 0.1 for buttery smooth
+    alwaysShowTracks: true,
+    continuousScrolling: false, // optional
+  });
+
+// Smooth scroll to anchor target
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('href').substring(1);
+    const target = document.getElementById(targetId);
+    if (target) {
+      scrollbar.scrollIntoView(target, {
+        offsetTop: 0,
+        alignToTop: true,
+        duration: 600,
+        easing: (t) => 1 - Math.pow(1 - t, 3), // easeOutCubic
+      });
+    }
+  });
 });
-
-sections.forEach(section => observer.observe(section));
 
 // === Signup Form Logic (only runs on signup page) ===
 document.addEventListener("DOMContentLoaded", () => {

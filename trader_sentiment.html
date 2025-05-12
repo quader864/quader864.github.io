@@ -8,26 +8,28 @@
 <body>
 <div>
     <script type="text/javascript">
-        // Create the script element dynamically
-        const script = document.createElement('script');
-        script.src = 'https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51';
+        // Check if the script is already added to avoid duplication
+        if (!document.querySelector('script[src="https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51"]')) {
+            const script = document.createElement('script');
+            script.src = 'https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51';
 
-        // Set up the onload event to call the function after the script is loaded
-        script.onload = () => {
-            if (typeof showOutlookWidget === 'function') {
-                showOutlookWidget();
-            } else {
-                console.error('Myfxbook script loaded, but showOutlookWidget() function not found.');
-            }
-        };
+            // Set up the onload event to call the function after the script is loaded
+            script.onload = () => {
+                if (typeof showOutlookWidget === 'function') {
+                    showOutlookWidget();
+                } else {
+                    console.error('Myfxbook script loaded, but showOutlookWidget() function not found.');
+                }
+            };
 
-        // Append the script to the body of the document
-        document.body.appendChild(script);
+            // Append the script to the body of the document
+            document.body.appendChild(script);
 
-        // Optional: handle error loading the script
-        script.onerror = () => {
-            console.error('Failed to load Myfxbook widget script.');
-        };
+            // Optional: handle error loading the script
+            script.onerror = () => {
+                console.error('Failed to load Myfxbook widget script.');
+            };
+        }
     </script>
 </div>
 

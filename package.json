@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "bootstrap": "^5.3.5",
-    "smooth-scrollbar": "^8.8.4"
-  },
-  "devDependencies": {
-    "parcel": "^2.14.4"
-  }
-}

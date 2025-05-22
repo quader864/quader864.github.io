@@ -4,49 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <style>
-        /* Styling for the loading spinner */
-        #loadingSpinner {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            font-weight: bold;
-            color: #555;
-            z-index: 9999;
-        }
-    </style>
+    <style>#loadingSpinner {
+  color: #555;
+  z-index: 9999;
+  font-size: 24px;
+  font-weight: bold;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
 </head>
 <body>
 <div id="loadingSpinner">Loading...</div>
 
-<script type="text/javascript">
-    // Check if the script is already added to avoid duplication
-    if (!document.querySelector('script[src="https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51';
+<script type="text/javascript">// Check if the script is already added to avoid duplication
+if (!document.querySelector('script[src="https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://widgets.myfxbook.com/scripts/fxOutlook.js?type=0&symbols=,1,2,4,5,7,11,28,29,51';
+    // Set up the onload event to call the function after the script is loaded
+    script.onload = ()=>{
+        if (typeof showOutlookWidget === 'function') {
+            // Hide the loading spinner after the script has loaded
+            showOutlookWidget(); // Show the widget
+            document.getElementById('loadingSpinner').style.display = 'none';
+        } else console.error('Myfxbook script loaded, but showOutlookWidget() function not found.');
+    };
+    // Append the script to the body of the document
+    document.body.appendChild(script);
+    // Optional: handle error loading the script
+    script.onerror = ()=>{
+        console.error('Failed to load Myfxbook widget script.');
+        document.getElementById('loadingSpinner').innerText = 'Failed to load widget, please try again later.';
+    };
+}
 
-        // Set up the onload event to call the function after the script is loaded
-        script.onload = () => {
-            if (typeof showOutlookWidget === 'function') {
-                // Hide the loading spinner after the script has loaded
-                document.getElementById('loadingSpinner').style.display = 'none';
-                showOutlookWidget(); // Show the widget
-            } else {
-                console.error('Myfxbook script loaded, but showOutlookWidget() function not found.');
-            }
-        };
-
-        // Append the script to the body of the document
-        document.body.appendChild(script);
-
-        // Optional: handle error loading the script
-        script.onerror = () => {
-            console.error('Failed to load Myfxbook widget script.');
-            document.getElementById('loadingSpinner').innerText = 'Failed to load widget, please try again later.';
-        };
-    }
 </script>
 
 <div style="font-size: 10px">
@@ -54,5 +47,5 @@
 </div>
 
 <div> test mobile kiram to hamatan</div>
-</body>
+<script src="/trader_sentiment.66a93fa2.js"></script></body>
 </html>

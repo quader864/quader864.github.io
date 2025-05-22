@@ -348,43 +348,36 @@ footer {
 }
 
 .trader_sentiment_body {
-  background-color: #000;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   display: flex;
 }
 
-.trader_sentiment_JS {
-  justify-content: center;
-  align-items: center;
-  display: flex;
-}
-
 .trader_sentiment_container {
   text-align: center;
-  background: #001550;
-  border-radius: 25px;
+  background: #1f0101;
+  border-radius: 8px;
   width: 100%;
-  max-width: 700px;
+  max-width: 600px;
   padding: 2rem;
-  box-shadow: 0 4px 15px #00000080;
+  box-shadow: 0 4px 15px #0000001a;
 }
 
 .trader_sentiment_header {
-  color: #92a6b9;
+  color: #2c3e50;
   margin-bottom: .25rem;
   font-weight: 700;
 }
 
 .trader_sentiment_subtitle {
-  color: #aa3131;
+  color: #888;
   margin-bottom: 1.5rem;
   font-size: .9rem;
 }
 
 .trader_sentiment_widget-container {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .myfxbookLink {

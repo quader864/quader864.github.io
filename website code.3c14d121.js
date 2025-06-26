@@ -743,7 +743,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     });
 });
 
-},{"smooth-scrollbar":"lwF0H","bootstrap/dist/css/bootstrap.min.css":"i5LP7","bootstrap/dist/js/bootstrap.bundle.min.js":"joWv1","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"lwF0H":[function(require,module,exports,__globalThis) {
+},{"smooth-scrollbar":"lwF0H","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","bootstrap/dist/css/bootstrap.min.css":"i5LP7","bootstrap/dist/js/bootstrap.bundle.min.js":"joWv1"}],"lwF0H":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ScrollbarPlugin", ()=>(0, _plugin.ScrollbarPlugin));

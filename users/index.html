@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        img { border-radius: 10px; margin-top: 10px; }
-      </style>
+  <meta charset="UTF-8" />
+  <title>User Profile</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 2rem; background: #f4f4f4; }
+    .container { max-width: 600px; margin: auto; }
+  </style>
 </head>
 <body>
-    <h1>Loading user profile...</h1>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const params = new URLSearchParams(window.location.search);
-            const email = params.get("email");
-        
-            if (!email) {
-                document.body.innerHTML = "<h1>❌ No email provided</h1>";
-                return;
-            }
-        
-            try {
-                const response = await fetch(`https://api-verifier.onrender.com/users/${encodeURIComponent(email)}`);
-                const html = await response.text();
-        
-                // Inject server-rendered HTML into your static page
-                document.body.innerHTML = html;
-            } catch (err) {
-                console.error(err);
-                document.body.innerHTML = "<h1>❌ Failed to load profile</h1>";
-            }
-        });
-        </script>
+  <div class="container" id="profile">Loading profile...</div>
+
+  <script>
+    // Fetch the HTML from your backend server with session cookie
+    fetch("https://api-verifier.onrender.com/profile", {
+      method: "GET",
+      credentials: "include", // Include the session cookie
+    })
+    .then(async res => {
+      const html = await res.text();
+      if (res.ok) {
+        document.getElementById("profile").innerHTML = html;
+      } else {
+        document.getElementById("profile").innerHTML = `<h3>❌ Unauthorized</h3><p>You are not logged in.</p>`;
+      }
+    })
+    .catch(err => {
+      console.error("Error fetching profile:", err);
+      document.getElementById("profile").innerHTML = "<p>❌ Failed to load profile.</p>";
+    });
+  </script>
 </body>
 </html>

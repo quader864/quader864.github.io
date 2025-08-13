@@ -672,13 +672,15 @@ var _smoothScrollbar = require("smooth-scrollbar");
 var _smoothScrollbarDefault = parcelHelpers.interopDefault(_smoothScrollbar);
 var _bootstrapMinCss = require("bootstrap/dist/css/bootstrap.min.css");
 var _bootstrapBundleMinJs = require("bootstrap/dist/js/bootstrap.bundle.min.js");
-// Initialize smooth scrollbar
-const scrollbar = (0, _smoothScrollbarDefault.default).init(document.querySelector('#my-scrollbar'), {
-    damping: 0.04,
-    alwaysShowTracks: true,
-    continuousScrolling: false
-});
-// Utility Functions
+// Initialize smooth scrollbar if element exists
+if (document.querySelector('#my-scrollbar')) {
+    const scrollbar = (0, _smoothScrollbarDefault.default).init(document.querySelector('#my-scrollbar'), {
+        damping: 0.04,
+        alwaysShowTracks: true,
+        continuousScrolling: false
+    });
+}
+// === Utility Functions ===
 function showAlert(message, isSuccess = false) {
     const alertBox = document.createElement('div');
     alertBox.className = `alert alert-${isSuccess ? 'success' : 'danger'} position-fixed top-0 start-0 end-0 m-3`;
@@ -689,7 +691,11 @@ function showAlert(message, isSuccess = false) {
     </div>
   `;
     document.body.prepend(alertBox);
-    setTimeout(()=>alertBox.remove(), 5000);
+    // Auto-dismiss after 5 seconds
+    setTimeout(()=>{
+        alertBox.classList.add('fade');
+        setTimeout(()=>alertBox.remove(), 150);
+    }, 5000);
 }
 function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -698,18 +704,71 @@ function setLoadingState(form, isLoading) {
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
         submitBtn.disabled = isLoading;
-        submitBtn.innerHTML = isLoading ? '<span class="spinner-border spinner-border-sm"></span> Processing...' : submitBtn.dataset.originalText || 'Submit';
+        if (isLoading) {
+            submitBtn.dataset.originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+        } else submitBtn.innerHTML = submitBtn.dataset.originalText || 'Submit';
     }
 }
-// Main Auth Logic
+// === Main Application Logic ===
 document.addEventListener("DOMContentLoaded", ()=>{
     const API_BASE_URL = "https://api-verifier.onrender.com";
     const FRONTEND_BASE_URL = "https://quader864.github.io";
-    // Save original button texts
+    // Store original button texts
     document.querySelectorAll('button[type="submit"]').forEach((btn)=>{
-        btn.dataset.originalText = btn.textContent;
+        btn.dataset.originalText = btn.innerHTML;
     });
-    // --- Signup Logic ---
+    // === Login Form Handling ===
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm) loginForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        setLoadingState(loginForm, true);
+        console.log("[DEBUG] Login form submitted");
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        // Client-side validation
+        if (!email || !password) {
+            showAlert("Both email and password are required", false);
+            setLoadingState(loginForm, false);
+            return;
+        }
+        if (!validateEmail(email)) {
+            showAlert("Please enter a valid email address", false);
+            setLoadingState(loginForm, false);
+            return;
+        }
+        try {
+            console.log("[DEBUG] Attempting login...");
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: "POST",
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            });
+            console.log("[DEBUG] Login response status:", response.status);
+            const data = await response.json();
+            console.log("[DEBUG] Login response data:", data);
+            if (response.ok) {
+                showAlert("Login successful! Redirecting...", true);
+                // Force hard redirect after delay
+                setTimeout(()=>{
+                    window.location.href = `${FRONTEND_BASE_URL}/profile.html`;
+                }, 1500);
+            } else showAlert(data.message || "Login failed. Please check your credentials.", false);
+        } catch (err) {
+            console.error("[ERROR] Login failed:", err);
+            showAlert("Network error. Please try again.", false);
+        } finally{
+            setLoadingState(loginForm, false);
+        }
+    });
+    // === Signup Form Handling ===
     const signupForm = document.getElementById("signupForm");
     if (signupForm) signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
@@ -750,53 +809,19 @@ document.addEventListener("DOMContentLoaded", ()=>{
             });
             const data = await response.json();
             if (response.status === 201) {
-                showAlert(data.message || "Account created successfully! Redirecting...", true);
-                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/profile.html`;
+                showAlert("Account created successfully! Redirecting...", true);
+                setTimeout(()=>{
+                    window.location.href = `${FRONTEND_BASE_URL}/profile.html`;
+                }, 1500);
             } else showAlert(data.message || "Registration failed", false);
         } catch (err) {
-            console.error("Fetch error:", err);
+            console.error("Registration error:", err);
             showAlert("Network error. Please try again.", false);
         } finally{
             setLoadingState(signupForm, false);
         }
     });
-    // --- Login Logic ---
-    const loginForm = document.getElementById("loginForm");
-    if (loginForm) loginForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        setLoadingState(loginForm, true);
-        const email = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPassword").value;
-        if (!email || !password) {
-            showAlert("Both email and password are required", false);
-            setLoadingState(loginForm, false);
-            return;
-        }
-        try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
-                method: "POST",
-                credentials: 'include',
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email,
-                    password
-                })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                showAlert(data.message || "Logged in successfully! Redirecting...", true);
-                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/profile.html`;
-            } else showAlert(data.message || "Login failed. Please check your credentials.", false);
-        } catch (err) {
-            console.error("Login error:", err);
-            showAlert("Network error. Please try again.", false);
-        } finally{
-            setLoadingState(loginForm, false);
-        }
-    });
-    // --- Logout Logic ---
+    // === Logout Handling ===
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) logoutBtn.addEventListener("click", async ()=>{
         try {
@@ -804,17 +829,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 method: "GET",
                 credentials: "include"
             });
-            const data = await response.json();
             if (response.ok) {
-                showAlert(data.message || "Logged out successfully", true);
-                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/index.html`;
-            } else showAlert(data.message || "Logout failed. Please try again.", false);
+                showAlert("Logged out successfully", true);
+                setTimeout(()=>{
+                    window.location.href = `${FRONTEND_BASE_URL}/index.html`;
+                }, 1000);
+            } else showAlert("Logout failed. Please try again.", false);
         } catch (err) {
             console.error("Logout error:", err);
             showAlert("Network error during logout", false);
         }
     });
-    // --- Session Verification for Protected Pages ---
+    // === Session Verification ===
     if (document.querySelector('.protected-page')) verifySession();
     async function verifySession() {
         try {
@@ -829,6 +855,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
             window.location.href = `${FRONTEND_BASE_URL}/login.html`;
         }
     }
+    // === Smooth Scrolling for Anchor Links ===
+    document.querySelectorAll('a[href^="#"]').forEach((anchor)=>{
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            if (target) window.scrollTo({
+                top: target.offsetTop,
+                behavior: 'smooth'
+            });
+        });
+    });
 });
 
 },{"smooth-scrollbar":"lwF0H","bootstrap/dist/css/bootstrap.min.css":"i5LP7","bootstrap/dist/js/bootstrap.bundle.min.js":"joWv1","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"lwF0H":[function(require,module,exports,__globalThis) {

@@ -667,16 +667,6 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"kTBnD":[function(require,module,exports,__globalThis) {
-// === Scroll Animation Logic ===
-// const sections = document.querySelectorAll('.fade-in');
-// const observer = new IntersectionObserver((entries) => {
-//     entries.forEach(entry => {
-//         if (entry.isIntersecting) {
-//             entry.target.classList.add('fade-in');
-//         }
-//     });
-// });
-// sections.forEach(section => observer.observe(section));
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _smoothScrollbar = require("smooth-scrollbar");
 var _smoothScrollbarDefault = parcelHelpers.interopDefault(_smoothScrollbar);
@@ -701,18 +691,26 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor)=>{
         });
     });
 });
-// === Signup Form Logic (only runs on signup page) ===
+// === Auth Form Logic ===
 document.addEventListener("DOMContentLoaded", ()=>{
     const signupForm = document.getElementById("signupForm");
+    const loginForm = document.getElementById("loginForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+    // --- Signup logic ---
     if (signupForm) signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
-        const firstName = document.getElementById("firstName").value;
-        const lastName = document.getElementById("lastName").value;
-        const email = document.getElementById("email").value;
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
+        if (!firstName || !lastName || !email || !password) {
+            alert("\u274C All fields are required!");
+            return;
+        }
         try {
             const response = await fetch("https://api-verifier.onrender.com/web-register", {
                 method: "POST",
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -723,22 +721,58 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     password
                 })
             });
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("Non-OK response:", errorText);
-                alert("\u274C Something went wrong with the server.");
-                return;
-            }
             const data = await response.json();
             if (response.status === 201) {
-                alert("\u2705 Account created!");
-                setTimeout(()=>{
-                    window.location.href = `https://quader864.github.io/users/?email=${encodeURIComponent(email)}`;
-                }, 1000);
-            } else alert("\u274C " + data.message);
+                alert("\u2705 Account created! Redirecting...");
+                window.location.href = "/profile/index.html"; // ✅ Now goes to frontend profile page
+            } else alert("\u274C " + (data.message || "Registration failed"));
         } catch (err) {
             console.error("Fetch error:", err);
-            alert("\u274C Failed to register. Please try again.");
+            alert("\u274C Network error. Please try again.");
+        }
+    });
+    // --- Login logic ---
+    if (loginForm) loginForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (!email || !password) {
+            alert("\u274C Both email and password are required.");
+            return;
+        }
+        try {
+            const response = await fetch("https://api-verifier.onrender.com/login", {
+                method: "POST",
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert("\u2705 Logged in successfully. Redirecting...");
+                window.location.href = "/profile.html"; // ✅ Now goes to frontend profile page
+            } else alert("\u274C " + (data.message || "Login failed."));
+        } catch (err) {
+            console.error("Login error:", err);
+            alert("\u274C Network error. Try again.");
+        }
+    });
+    // --- Logout logic ---
+    if (logoutBtn) logoutBtn.addEventListener("click", async ()=>{
+        try {
+            await fetch("https://api-verifier.onrender.com/logout", {
+                method: "GET",
+                credentials: "include"
+            });
+            alert("\uD83D\uDC4B Logged out");
+            window.location.href = "/";
+        } catch (err) {
+            alert("\u274C Logout failed");
         }
     });
 });

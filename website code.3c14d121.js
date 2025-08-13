@@ -672,43 +672,70 @@ var _smoothScrollbar = require("smooth-scrollbar");
 var _smoothScrollbarDefault = parcelHelpers.interopDefault(_smoothScrollbar);
 var _bootstrapMinCss = require("bootstrap/dist/css/bootstrap.min.css");
 var _bootstrapBundleMinJs = require("bootstrap/dist/js/bootstrap.bundle.min.js");
+// Initialize smooth scrollbar
 const scrollbar = (0, _smoothScrollbarDefault.default).init(document.querySelector('#my-scrollbar'), {
     damping: 0.04,
     alwaysShowTracks: true,
     continuousScrolling: false
 });
-// Smooth scroll to anchor target
-document.querySelectorAll('a[href^="#"]').forEach((anchor)=>{
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        const target = document.getElementById(targetId);
-        if (target) scrollbar.scrollIntoView(target, {
-            offsetTop: 0,
-            alignToTop: true,
-            duration: 600,
-            easing: (t)=>1 - Math.pow(1 - t, 3)
-        });
-    });
-});
-// === Auth Form Logic ===
+// Utility Functions
+function showAlert(message, isSuccess = false) {
+    const alertBox = document.createElement('div');
+    alertBox.className = `alert alert-${isSuccess ? 'success' : 'danger'} position-fixed top-0 start-0 end-0 m-3`;
+    alertBox.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center">
+      <span>${message}</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+    document.body.prepend(alertBox);
+    setTimeout(()=>alertBox.remove(), 5000);
+}
+function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+function setLoadingState(form, isLoading) {
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = isLoading;
+        submitBtn.innerHTML = isLoading ? '<span class="spinner-border spinner-border-sm"></span> Processing...' : submitBtn.dataset.originalText || 'Submit';
+    }
+}
+// Main Auth Logic
 document.addEventListener("DOMContentLoaded", ()=>{
+    const API_BASE_URL = "https://api-verifier.onrender.com";
+    const FRONTEND_BASE_URL = "https://quader864.github.io";
+    // Save original button texts
+    document.querySelectorAll('button[type="submit"]').forEach((btn)=>{
+        btn.dataset.originalText = btn.textContent;
+    });
+    // --- Signup Logic ---
     const signupForm = document.getElementById("signupForm");
-    const loginForm = document.getElementById("loginForm");
-    const logoutBtn = document.getElementById("logoutBtn");
-    // --- Signup logic ---
     if (signupForm) signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
+        setLoadingState(signupForm, true);
         const firstName = document.getElementById("firstName").value.trim();
         const lastName = document.getElementById("lastName").value.trim();
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
+        // Client-side validation
         if (!firstName || !lastName || !email || !password) {
-            alert("\u274C All fields are required!");
+            showAlert("All fields are required!", false);
+            setLoadingState(signupForm, false);
+            return;
+        }
+        if (!validateEmail(email)) {
+            showAlert("Please enter a valid email address", false);
+            setLoadingState(signupForm, false);
+            return;
+        }
+        if (password.length < 8) {
+            showAlert("Password must be at least 8 characters", false);
+            setLoadingState(signupForm, false);
             return;
         }
         try {
-            const response = await fetch("https://api-verifier.onrender.com/web-register", {
+            const response = await fetch(`${API_BASE_URL}/web-register`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {
@@ -723,25 +750,30 @@ document.addEventListener("DOMContentLoaded", ()=>{
             });
             const data = await response.json();
             if (response.status === 201) {
-                alert("\u2705 Account created! Redirecting...");
-                window.location.href = "/profile/index.html"; // ✅ Now goes to frontend profile page
-            } else alert("\u274C " + (data.message || "Registration failed"));
+                showAlert(data.message || "Account created successfully! Redirecting...", true);
+                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/profile.html`;
+            } else showAlert(data.message || "Registration failed", false);
         } catch (err) {
             console.error("Fetch error:", err);
-            alert("\u274C Network error. Please try again.");
+            showAlert("Network error. Please try again.", false);
+        } finally{
+            setLoadingState(signupForm, false);
         }
     });
-    // --- Login logic ---
+    // --- Login Logic ---
+    const loginForm = document.getElementById("loginForm");
     if (loginForm) loginForm.addEventListener("submit", async function(e) {
         e.preventDefault();
+        setLoadingState(loginForm, true);
         const email = document.getElementById("loginEmail").value.trim();
         const password = document.getElementById("loginPassword").value;
         if (!email || !password) {
-            alert("\u274C Both email and password are required.");
+            showAlert("Both email and password are required", false);
+            setLoadingState(loginForm, false);
             return;
         }
         try {
-            const response = await fetch("https://api-verifier.onrender.com/login", {
+            const response = await fetch(`${API_BASE_URL}/login`, {
                 method: "POST",
                 credentials: 'include',
                 headers: {
@@ -754,27 +786,49 @@ document.addEventListener("DOMContentLoaded", ()=>{
             });
             const data = await response.json();
             if (response.ok) {
-                alert("\u2705 Logged in successfully. Redirecting...");
-                window.location.href = "/profile.html"; // ✅ Now goes to frontend profile page
-            } else alert("\u274C " + (data.message || "Login failed."));
+                showAlert(data.message || "Logged in successfully! Redirecting...", true);
+                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/profile.html`;
+            } else showAlert(data.message || "Login failed. Please check your credentials.", false);
         } catch (err) {
             console.error("Login error:", err);
-            alert("\u274C Network error. Try again.");
+            showAlert("Network error. Please try again.", false);
+        } finally{
+            setLoadingState(loginForm, false);
         }
     });
-    // --- Logout logic ---
+    // --- Logout Logic ---
+    const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) logoutBtn.addEventListener("click", async ()=>{
         try {
-            await fetch("https://api-verifier.onrender.com/logout", {
+            const response = await fetch(`${API_BASE_URL}/logout`, {
                 method: "GET",
                 credentials: "include"
             });
-            alert("\uD83D\uDC4B Logged out");
-            window.location.href = "/";
+            const data = await response.json();
+            if (response.ok) {
+                showAlert(data.message || "Logged out successfully", true);
+                window.location.href = data.redirectUrl || `${FRONTEND_BASE_URL}/index.html`;
+            } else showAlert(data.message || "Logout failed. Please try again.", false);
         } catch (err) {
-            alert("\u274C Logout failed");
+            console.error("Logout error:", err);
+            showAlert("Network error during logout", false);
         }
     });
+    // --- Session Verification for Protected Pages ---
+    if (document.querySelector('.protected-page')) verifySession();
+    async function verifySession() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/verify`, {
+                method: "POST",
+                credentials: "include"
+            });
+            const data = await response.json();
+            if (!response.ok || data.status !== "authorized") window.location.href = `${FRONTEND_BASE_URL}/login.html`;
+        } catch (err) {
+            console.error("Session verification failed:", err);
+            window.location.href = `${FRONTEND_BASE_URL}/login.html`;
+        }
+    }
 });
 
 },{"smooth-scrollbar":"lwF0H","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","bootstrap/dist/css/bootstrap.min.css":"i5LP7","bootstrap/dist/js/bootstrap.bundle.min.js":"joWv1"}],"lwF0H":[function(require,module,exports,__globalThis) {

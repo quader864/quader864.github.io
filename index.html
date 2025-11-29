@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -33,11 +34,18 @@
         }
       }
     </script>
+    <script>
+      // Check local storage or system preference on load to avoid FOUC
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    </script>
     <style>
       /* Base Resets */
       body {
-        background-color: #0f172a;
-        color: #f8fafc;
+        /* Background color handled by utility classes on main app wrapper */
         overflow-x: hidden;
         margin: 0;
       }
@@ -49,6 +57,13 @@
       ::-webkit-scrollbar-track {
         background: #1e293b;
       }
+      .dark ::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+      :not(.dark) ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+
       ::-webkit-scrollbar-thumb {
         background: #475569;
         border-radius: 5px;
@@ -58,8 +73,7 @@
       }
     </style>
 
-<link rel="stylesheet" href="/index.css">
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
@@ -71,9 +85,9 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-Bis9cUBH.js"></script>
+  <script type="module" crossorigin src="/assets/index-BE6OxtIg.js"></script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>

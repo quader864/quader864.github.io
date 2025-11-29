@@ -1,2 +1,0 @@
-let API_BASE_URL="https://api-verifier.onrender.com",FRONTEND_BASE_URL="https://quader864.github.io";async function verifySession(e=!0){try{let i=await fetch("https://api-verifier.onrender.com/verify",{method:"POST",credentials:"include"}),t=await i.json();if(!i.ok||"authorized"!==t.status)return e&&(window.location.href=`${FRONTEND_BASE_URL}/login.html`),null;return t.user}catch(i){return console.error("Session verification failed:",i),e&&(window.location.href=`${FRONTEND_BASE_URL}/login.html`),null}}
-//# sourceMappingURL=login.8704c696.js.map

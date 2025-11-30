@@ -503,7 +503,7 @@ Please change the parent <Route path="${O}"> to <Route path="${O==="/"?"*":`${O}
       <body>
         <div id="loader" class="loader-container">
           <div class="loader"></div>
-          <div class="loading-text">Loading MyFxBlue Data...</div>
+          <div class="loading-text">Connecting to API...</div>
         </div>
 
         <div id="sentimentContainer" class="widget-card" style="min-height: 100vh;">
@@ -517,7 +517,7 @@ Please change the parent <Route path="${O}"> to <Route path="${O==="/"?"*":`${O}
         </div>
 
         <script>
-          // Fallback data in case the API is down (500 error)
+          // Fallback data in case the API is down
           const MOCK_DATA = [
             { "pair": "EUR/USD", "long": { "percent": 42.5 }, "short": { "percent": 57.5 } },
             { "pair": "GBP/USD", "long": { "percent": 38.1 }, "short": { "percent": 61.9 } },
@@ -533,36 +533,55 @@ Please change the parent <Route path="${O}"> to <Route path="${O==="/"?"*":`${O}
             { "pair": "US30", "long": { "percent": 58.5 }, "short": { "percent": 41.5 } }
           ];
 
+          async function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          }
+
           async function loadSentiment() {
             const loader = document.getElementById('loader');
+            const loadingText = document.querySelector('.loading-text');
             const container = document.getElementById('sentimentContainer');
             const grid = document.getElementById('sentimentGrid');
             const footer = document.getElementById('apiFooter');
             
-            let data = [];
+            let data = MOCK_DATA;
             let isLive = false;
+            const MAX_RETRIES = 3;
 
-            try {
-              // Attempt to fetch from real API
-              const res = await fetch('https://api-verifier.onrender.com/api/sentiment');
-              
-              if (!res.ok) {
-                throw new Error('API Request Failed with status ' + res.status);
-              }
-              
-              const jsonData = await res.json();
-              if (Array.isArray(jsonData) && jsonData.length > 0) {
-                data = jsonData;
-                isLive = true;
-              } else {
-                throw new Error('Empty or invalid data');
+            // Retry Loop
+            for (let i = 0; i < MAX_RETRIES; i++) {
+              try {
+                if (loadingText) loadingText.textContent = \`Connecting to API... (Attempt \${i + 1}/\${MAX_RETRIES})\`;
+                
+                const res = await fetch('https://api-verifier.onrender.com/api/sentiment', { 
+                    method: 'GET',
+                    cache: 'no-store' // Prevent caching issues
+                });
+                
+                if (res.ok) {
+                  const jsonData = await res.json();
+                  if (Array.isArray(jsonData) && jsonData.length > 0) {
+                    data = jsonData;
+                    isLive = true;
+                    break; // Success: Exit loop
+                  } else {
+                    console.warn("API returned empty or invalid data structure");
+                  }
+                } else {
+                    console.warn(\`API returned status: \${res.status}\`);
+                }
+              } catch (err) {
+                console.warn(\`Attempt \${i + 1} failed:\`, err);
               }
 
-            } catch (err) {
-              console.warn('MyFxBlue API unavailable, switching to demo mode:', err);
-              // Fallback to mock data
-              data = MOCK_DATA;
-              isLive = false;
+              // If not the last attempt, wait before retrying
+              if (i < MAX_RETRIES - 1) {
+                await wait(1500); 
+              }
+            }
+            
+            if (!isLive) {
+                console.warn('All connection attempts failed. Switching to Demo Mode.');
             }
 
             // Render Function
@@ -596,7 +615,7 @@ Please change the parent <Route path="${O}"> to <Route path="${O==="/"?"*":`${O}
             if (isLive) {
               footer.innerHTML = '<span class="status-dot live"></span> Live Data provided by FXBlue API';
             } else {
-              footer.innerHTML = '<span class="status-dot offline"></span> Demo Data (API Offline)';
+              footer.innerHTML = '<span class="status-dot offline"></span> Demo Data (Connection Failed)';
             }
 
             // Show Widget

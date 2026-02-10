@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Alireza "Quader" Kiani | Portfolio</title>
     <link rel="icon" href="/assets/myiconArtboard-5-De32LEFn.ico" />
+    <link rel="manifest" href="/assets/manifest-CHrkXXNI.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Quader" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +43,6 @@
       }
     </script>
     <script>
-      // Check local storage or system preference on load to avoid FOUC
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark')
       } else {
@@ -45,36 +50,18 @@
       }
     </script>
     <style>
-      /* Base Resets */
       body {
-        /* Set base background to match theme so transparent pages (Home) show correct color */
         @apply bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200;
         overflow-x: hidden;
         margin: 0;
         transition: background-color 0.3s, color 0.3s;
       }
-      
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 10px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #1e293b;
-      }
-      .dark ::-webkit-scrollbar-track {
-        background: #1e293b;
-      }
-      :not(.dark) ::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: #475569;
-        border-radius: 5px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-      }
+      ::-webkit-scrollbar { width: 10px; }
+      ::-webkit-scrollbar-track { background: #1e293b; }
+      .dark ::-webkit-scrollbar-track { background: #1e293b; }
+      :not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
+      ::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
+      ::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 
 <script type="importmap">
@@ -89,7 +76,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-BFEeX90O.js"></script>
+  <script type="module" crossorigin src="/assets/index-DH9ttZ5A.js"></script>
 </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <div id="root"></div>

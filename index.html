@@ -1,12 +1,12 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Alireza "Quader" Kiani | Portfolio</title>
     <link rel="icon" href="/assets/myiconArtboard-5-De32LEFn.ico" />
-    <link rel="manifest" href="/assets/manifest-CHrkXXNI.json" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#6366f1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -23,6 +23,7 @@
           extend: {
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
               slate: {
@@ -31,7 +32,7 @@
                 950: '#020617',
               },
               accent: {
-                500: '#6366f1', // Indigo
+                500: '#6366f1',
                 600: '#4f46e5',
                 400: '#818cf8',
                 300: '#a5b4fc',
@@ -55,13 +56,13 @@
         overflow-x: hidden;
         margin: 0;
         transition: background-color 0.3s, color 0.3s;
+        scroll-behavior: auto !important; 
       }
-      ::-webkit-scrollbar { width: 10px; }
-      ::-webkit-scrollbar-track { background: #1e293b; }
-      .dark ::-webkit-scrollbar-track { background: #1e293b; }
-      :not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9; }
-      ::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
-      ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+      
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
     </style>
 
 <script type="importmap">
@@ -72,11 +73,12 @@
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24"
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js"
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-DH9ttZ5A.js"></script>
+  <script type="module" crossorigin src="/assets/index-CBbbfqQ4.js"></script>
 </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <div id="root"></div>

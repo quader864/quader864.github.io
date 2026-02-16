@@ -1,21 +1,27 @@
+const CACHE_NAME = 'quader-portfolio-v3';
+const OFFLINE_URL = '/index.html';
 
-const CACHE_NAME = 'quader-portfolio-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/types.ts',
+  '/constants.ts',
+  '/index.tsx'
 ];
 
-// External library URLs to cache
 const EXTERNAL_LIBS = [
   'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
+  'https://aistudiocdn.com/react@^19.2.0',
+  'https://aistudiocdn.com/react-dom@^19.2.0/'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Pre-caching app shell');
       return cache.addAll([...ASSETS_TO_CACHE, ...EXTERNAL_LIBS]);
     })
   );
@@ -28,6 +34,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Removing old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -39,36 +46,40 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
-  // Network-first for API calls
-  if (event.request.url.includes('api.quader864.ir')) {
+  const url = new URL(event.request.url);
+  if (url.origin.includes('api.quader864.ir')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request)
+        .then((response) => {
+          const clonedResponse = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clonedResponse);
+          });
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
-
-  // Cache-first for static assets
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match(OFFLINE_URL);
+      })
+    );
+    return;
+  }
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
         return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-      });
+      }).catch(() => null);
+      return cachedResponse || fetchPromise;
     })
   );
 });

@@ -100,8 +100,18 @@ if (self.workbox) {
   );
 
   // 3. API Cached Routing (Network-First state with cache fallback)
+  // Bypasses caching and service worker interception for all authentication, verification, and private user management endpoints to ensure session integrity.
   self.workbox.routing.registerRoute(
-    ({ url }) => url.origin.includes('api.quader864.ir'),
+    ({ url }) => {
+      const isApiHost = url.origin.includes('api.quader864.ir');
+      if (!isApiHost) return false;
+
+      // Exclude authentication, active user profile, and verification endpoints from service worker interception
+      const isAuthOrSession = url.pathname.includes('/auth/') || 
+                             url.pathname.includes('/verify') || 
+                             url.pathname.includes('/me/');
+      return !isAuthOrSession;
+    },
     new self.workbox.strategies.NetworkFirst({
       cacheName: 'quader-api-cache',
       plugins: [

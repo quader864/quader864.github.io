@@ -15,7 +15,11 @@ const EXTERNAL_LIBS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
   'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0/'
+  'https://aistudiocdn.com/react-dom@^19.2.0/',
+  'https://aistudiocdn.com/react-router-dom@^7.9.6',
+  'https://aistudiocdn.com/framer-motion@^12.23.24',
+  'https://aistudiocdn.com/lucide-react@^0.555.0',
+  'https://esm.sh/react-dom@^19.2.4'
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,7 +29,12 @@ self.addEventListener('install', (event) => {
       return cache.addAll([...ASSETS_TO_CACHE, ...EXTERNAL_LIBS]);
     })
   );
-  self.skipWaiting();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
@@ -72,7 +81,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+        if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, networkResponse.clone());
           });

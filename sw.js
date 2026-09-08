@@ -1,143 +1,373 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
+// ==============================================================================
+// Quader Portfolio - High-Performance Offline Service Worker
+// Fully self-contained: No external CDN dependencies for zero-failure offline loads
+// ==============================================================================
 
-if (self.workbox) {
-  console.log('[SW] Workbox loaded successfully 🎉');
-  
-  // Disable console debug logs in production to keep developer panel clean, set to true to debug
-  self.workbox.setConfig({ debug: false });
+const SW_VERSION = 'v2.0.0';
+const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
+const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
+const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
+const CACHE_FONTS = `quader-fonts-${SW_VERSION}`;
+const CACHE_API = `quader-api-${SW_VERSION}`;
 
-  // 1. Precise Precaching of the Core App Shell & Scripts
-  const PRECACHE_MANIFEST = [
-    { url: '/', revision: '1' },
-    { url: '/index.html', revision: '1' },
-    { url: '/manifest.json', revision: '1' },
-    { url: '/types.ts', revision: '1' },
-    { url: '/constants.ts', revision: '1' },
-    { url: '/index.tsx', revision: '1' }
-  ];
+// Essential shell resources to precache immediately on install
+const PRECACHE_SHELL_URLS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/myiconArtboard-5.ico',
+  '/index.css',
+  // Critical CDN libraries for Tailwind and Google Fonts
+  'https://cdn.tailwindcss.com',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap',
+  // Core runtime modules used by app
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
+  'https://aistudiocdn.com/react@^19.2.0',
+  'https://aistudiocdn.com/react-dom@^19.2.0/',
+  'https://aistudiocdn.com/react-router-dom@^7.9.6',
+  'https://aistudiocdn.com/framer-motion@^12.23.24',
+  'https://aistudiocdn.com/lucide-react@^0.555.0',
+  'https://esm.sh/react-dom@^19.2.4'
+];
 
-  // Essential external assets to precache (Vite and system dependencies used by the app layout)
-  const EXTERNAL_LIBS = [
-    'https://cdn.tailwindcss.com',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap',
-    'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
-    'https://aistudiocdn.com/react@^19.2.0',
-    'https://aistudiocdn.com/react-dom@^19.2.0/',
-    'https://aistudiocdn.com/react-router-dom@^7.9.6',
-    'https://aistudiocdn.com/framer-motion@^12.23.24',
-    'https://aistudiocdn.com/lucide-react@^0.555.0',
-    'https://esm.sh/react-dom@^19.2.4'
-  ];
+// ------------------------------------------------------------------------------
+// 1. Install Event: Precache app shell with resilient error handling
+// ------------------------------------------------------------------------------
+self.addEventListener('install', (event) => {
+  console.log(`[SW] Installing Service Worker ${SW_VERSION}...`);
 
-  // Register precached app shell resources
-  self.workbox.precaching.precacheAndRoute([
-    ...PRECACHE_MANIFEST,
-    ...EXTERNAL_LIBS.map(url => ({ url, revision: '1' }))
-  ]);
-
-  // SPA navigation fallback: Redirect page navigations directly to precached index.html
-  self.workbox.routing.registerRoute(
-    new self.workbox.routing.NavigationRoute(
-      self.workbox.precaching.createHandlerBoundToURL('/index.html')
-    )
-  );
-
-  // 2. Dynamic Asset Routing (Using Stale-While-Revalidate)
-
-  // A. JavaScript & CSS chunks
-  self.workbox.routing.registerRoute(
-    ({ request }) => request.destination === 'script' || request.destination === 'style',
-    new self.workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'quader-static-resources',
-      plugins: [
-        new self.workbox.expiration.ExpirationPlugin({
-          maxEntries: 60,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days Cache Duration
-        }),
-      ],
-    })
-  );
-
-  // B. Media & Images (covers relative images, Unsplash, postimg links, YouTube thumbnails, etc.)
-  self.workbox.routing.registerRoute(
-    ({ request, url }) => {
-      const isImageDest = request.destination === 'image';
-      const isImageHost = url.hostname.includes('postimg.cc') || 
-                          url.hostname.includes('img.youtube.com') || 
-                          url.hostname.includes('images.unsplash.com');
-      const isImageExt = /\.(png|jpg|jpeg|svg|webp|gif|ico)/i.test(url.pathname);
+  event.waitUntil(
+    (async () => {
+      const shellCache = await caches.open(CACHE_SHELL);
       
-      return isImageDest || isImageHost || isImageExt;
-    },
-    new self.workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'quader-images-cache',
-      plugins: [
-        // Ensure successful cross-origin fetch responses are cacheable
-        new self.workbox.cacheableResponse.CacheableResponsePlugin({
-          statuses: [0, 200]
-        }),
-        new self.workbox.expiration.ExpirationPlugin({
-          maxEntries: 120,
-          maxAgeSeconds: 60 * 24 * 60 * 60, // 60 Days Cache Duration
-          purgeOnQuotaError: true,
-        }),
-      ],
-    })
+      // Cache URLs individually so a single network glitch doesn't abort installation
+      await Promise.allSettled(
+        PRECACHE_SHELL_URLS.map(async (url) => {
+          try {
+            const request = new Request(url, { cache: 'reload' });
+            const response = await fetch(request);
+            if (response.ok || response.type === 'opaque') {
+              await shellCache.put(request, response);
+            }
+          } catch (err) {
+            console.warn(`[SW Precache] Failed to cache: ${url}`, err);
+          }
+        })
+      );
+
+      // Take control of the page immediately
+      await self.skipWaiting();
+      console.log(`[SW] Service Worker ${SW_VERSION} installed & active.`);
+    })()
   );
+});
 
-  // C. Fonts (Google Fonts, webfonts, etc.)
-  self.workbox.routing.registerRoute(
-    ({ request }) => request.destination === 'font',
-    new self.workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'quader-fonts-cache',
-      plugins: [
-        new self.workbox.expiration.ExpirationPlugin({
-          maxEntries: 20,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 Year Cache Duration
-        }),
-      ],
-    })
+// ------------------------------------------------------------------------------
+// 2. Activate Event: Purge older caches & claim clients instantly
+// ------------------------------------------------------------------------------
+self.addEventListener('activate', (event) => {
+  console.log(`[SW] Activating Service Worker ${SW_VERSION}...`);
+
+  const currentCaches = [CACHE_SHELL, CACHE_ASSETS, CACHE_IMAGES, CACHE_FONTS, CACHE_API];
+
+  event.waitUntil(
+    (async () => {
+      const cacheKeys = await caches.keys();
+      await Promise.all(
+        cacheKeys.map(async (key) => {
+          if (!currentCaches.includes(key) && key.startsWith('quader-')) {
+            console.log(`[SW] Deleting obsolete cache: ${key}`);
+            await caches.delete(key);
+          }
+        })
+      );
+
+      // Claim all clients immediately so the service worker controls existing open tabs
+      await self.clients.claim();
+      console.log(`[SW] Clients claimed. Active & controlling clients.`);
+    })()
   );
+});
 
-  // 3. API Cached Routing (Network-First state with cache fallback)
-  // Bypasses caching and service worker interception for all authentication, verification, and private user management endpoints to ensure session integrity.
-  self.workbox.routing.registerRoute(
-    ({ url }) => {
-      const isApiHost = url.origin.includes('api.quader864.ir');
-      if (!isApiHost) return false;
+// ------------------------------------------------------------------------------
+// 3. Fetch Event: Multi-tier offline caching strategy
+// ------------------------------------------------------------------------------
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
 
-      // Exclude authentication, active user profile, and verification endpoints from service worker interception
-      const isAuthOrSession = url.pathname.includes('/auth/') || 
-                             url.pathname.includes('/verify') || 
-                             url.pathname.includes('/me/');
-      return !isAuthOrSession;
-    },
-    new self.workbox.strategies.NetworkFirst({
-      cacheName: 'quader-api-cache',
-      plugins: [
-        new self.workbox.cacheableResponse.CacheableResponsePlugin({
-          statuses: [0, 200]
-        }),
-        new self.workbox.expiration.ExpirationPlugin({
-          maxEntries: 50,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 Days Validation Window
-        }),
-      ],
-    })
-  );
+  // Only handle GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
 
-  // Support user-triggered SKIP_WAITING updates instantly
-  self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'SKIP_WAITING') {
-      self.skipWaiting();
+  // Prevent handling Chrome internal extensions or unsupported schemes
+  const url = new URL(request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Workaround for Chrome devtools cache bug
+  if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Case A: Navigation Requests (App Shell fallback for instant offline boot)
+  // ----------------------------------------------------------------------------
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      (async () => {
+        try {
+          // Attempt network fetch with a tight timeout to avoid waiting on dead connections
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+          const networkResponse = await fetch(request, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+            // Update the shell cache in the background
+            const cache = await caches.open(CACHE_SHELL);
+            cache.put('/index.html', networkResponse.clone()).catch(() => {});
+            cache.put('/', networkResponse.clone()).catch(() => {});
+            return networkResponse;
+          }
+        } catch (error) {
+          console.log('[SW] Network navigation failed, falling back to cached app shell:', request.url);
+        }
+
+        // Return cached index.html or root
+        const cachedResponse = 
+          (await caches.match('/index.html')) || 
+          (await caches.match('/')) ||
+          (await caches.match(request));
+
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return new Response(
+          '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>Offline</h1><p>Website is loading from cache.</p></body></html>',
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      })()
+    );
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Case B: API Requests (api.quader864.ir)
+  // ----------------------------------------------------------------------------
+  if (url.hostname.includes('api.quader864.ir')) {
+    // Exclude authentication, session, password reset, and private profile endpoints
+    const isSensitiveAuth = 
+      url.pathname.includes('/auth/') || 
+      url.pathname.includes('/verify') || 
+      url.pathname.includes('/me/') ||
+      url.pathname.includes('/password-reset');
+
+    if (isSensitiveAuth) {
+      // Direct network pass-through, never cache sensitive credentials
+      return;
     }
-  });
 
-  // Enable fast claim when the service worker is activated
-  self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
-  });
+    // Public API endpoints: Network-First with Cache Fallback for offline access
+    event.respondWith(
+      (async () => {
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && networkResponse.ok) {
+            const cache = await caches.open(CACHE_API);
+            cache.put(request, networkResponse.clone()).catch(() => {});
+          }
+          return networkResponse;
+        } catch (error) {
+          const cachedResponse = await caches.match(request);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          throw error;
+        }
+      })()
+    );
+    return;
+  }
 
-} else {
-  console.error('[SW] Workbox could not be initialized from the Google CDN.');
-}
+  // ----------------------------------------------------------------------------
+  // Case C: Images & Media (Cache-First with Network Fallback)
+  // ----------------------------------------------------------------------------
+  const isImage = 
+    request.destination === 'image' ||
+    /\.(png|jpg|jpeg|svg|webp|gif|ico)(\?.*)?$/i.test(url.pathname) ||
+    url.hostname.includes('postimg.cc') ||
+    url.hostname.includes('img.youtube.com') ||
+    url.hostname.includes('images.unsplash.com');
+
+  if (isImage) {
+    event.respondWith(
+      (async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+            const cache = await caches.open(CACHE_IMAGES);
+            cache.put(request, networkResponse.clone()).catch(() => {});
+          }
+          return networkResponse;
+        } catch (error) {
+          // If offline and image not cached, attempt match ignoring search params
+          const looseMatch = await caches.match(request, { ignoreSearch: true });
+          if (looseMatch) return looseMatch;
+          throw error;
+        }
+      })()
+    );
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Case D: Fonts (Cache-First)
+  // ----------------------------------------------------------------------------
+  const isFont = 
+    request.destination === 'font' ||
+    url.hostname.includes('fonts.gstatic.com') ||
+    /\.(woff|woff2|ttf|otf|eot)(\?.*)?$/i.test(url.pathname);
+
+  if (isFont) {
+    event.respondWith(
+      (async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+            const cache = await caches.open(CACHE_FONTS);
+            cache.put(request, networkResponse.clone()).catch(() => {});
+          }
+          return networkResponse;
+        } catch (error) {
+          throw error;
+        }
+      })()
+    );
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Case E: Static Code, Scripts, Styles & Vite Assets (Stale-While-Revalidate / Cache-First)
+  // ----------------------------------------------------------------------------
+  const isStaticCode = 
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    /\.(js|mjs|css|tsx|ts)(\?.*)?$/i.test(url.pathname) ||
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.includes('/@vite/') ||
+    url.pathname.includes('/@react-refresh') ||
+    url.hostname.includes('aistudiocdn.com') ||
+    url.hostname.includes('esm.sh') ||
+    url.hostname.includes('cdn.tailwindcss.com') ||
+    url.hostname.includes('cdnjs.cloudflare.com');
+
+  if (isStaticCode) {
+    event.respondWith(
+      (async () => {
+        const cachedResponse = await caches.match(request);
+
+        // Fetch network version to update cache in the background (or foreground if cache miss)
+        const fetchPromise = (async () => {
+          try {
+            const networkResponse = await fetch(request);
+            if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+              const cache = await caches.open(CACHE_ASSETS);
+              await cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          } catch (err) {
+            return null;
+          }
+        })();
+
+        // If we have a cached copy, return it immediately for instant offline load
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Otherwise wait for network
+        const freshResponse = await fetchPromise;
+        if (freshResponse) {
+          return freshResponse;
+        }
+
+        // Loose match fallback (ignore query string like ?v=... or ?t=...)
+        const fallbackMatch = await caches.match(request, { ignoreSearch: true });
+        if (fallbackMatch) {
+          return fallbackMatch;
+        }
+
+        throw new Error(`[SW] Resource not available offline: ${request.url}`);
+      })()
+    );
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Case F: Generic Fallback (Network-First with cache fallback)
+  // ----------------------------------------------------------------------------
+  event.respondWith(
+    (async () => {
+      try {
+        const networkResponse = await fetch(request);
+        if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+          const cache = await caches.open(CACHE_ASSETS);
+          cache.put(request, networkResponse.clone()).catch(() => {});
+        }
+        return networkResponse;
+      } catch (error) {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        throw error;
+      }
+    })()
+  );
+});
+
+// ------------------------------------------------------------------------------
+// 4. Message Event: Support immediate activation & programmatic caching
+// ------------------------------------------------------------------------------
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+
+  if (event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] SKIP_WAITING received, activating immediately.');
+    self.skipWaiting();
+  }
+
+  if (event.data.type === 'PRECACHE_URLS' && Array.isArray(event.data.urls)) {
+    event.waitUntil(
+      (async () => {
+        const cache = await caches.open(CACHE_ASSETS);
+        await Promise.allSettled(
+          event.data.urls.map(async (u) => {
+            try {
+              const res = await fetch(u);
+              if (res.ok || res.type === 'opaque') {
+                await cache.put(u, res);
+              }
+            } catch (e) {
+              console.warn('[SW] Could not precache URL:', u, e);
+            }
+          })
+        );
+      })()
+    );
+  }
+});

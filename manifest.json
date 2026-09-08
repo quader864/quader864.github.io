@@ -1,9 +1,11 @@
 
 {
+  "id": "/",
   "name": "Alireza 'Quader' Kiani | Portfolio",
   "short_name": "Quader",
   "description": "Web Developer & MetaTrader Solutions",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#6366f1",

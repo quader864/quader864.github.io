@@ -1,9 +1,9 @@
 
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <title>Alireza "Quader" Kiani | Portfolio</title>
     <link rel="icon" href="/myiconArtboard-5.ico" />
     <link rel="manifest" href="/manifest.json" />
@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -24,6 +24,7 @@
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
               mono: ['JetBrains Mono', 'monospace'],
+              number: ['Space Grotesk', 'JetBrains Mono', 'sans-serif'],
             },
             colors: {
               slate: {
@@ -51,37 +52,41 @@
       }
     </script>
     <style>
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
+      }
       body {
         @apply bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200;
         overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
         margin: 0;
         transition: background-color 0.3s, color 0.3s;
-        scroll-behavior: auto !important; 
+        position: relative;
+      }
+      #root {
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
       }
       
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
       ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
-    </style>
-
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.24",
-    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js",
-    "react-dom": "https://esm.sh/react-dom@^19.2.4"
-  }
-}
-</script>
-  <script type="module" crossorigin src="/assets/index-D6vF1vll.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-cX5VULwR.css">
-</head>
+      .font-number {
+        font-family: 'Space Grotesk', 'JetBrains Mono', monospace, sans-serif;
+        font-feature-settings: 'tnum' 1, 'zero' 1;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-3_yXK3AF.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B0twDEam.css">
+  </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <div id="root"></div>
     <script>

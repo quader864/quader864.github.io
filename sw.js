@@ -3,7 +3,7 @@
 // Fully self-contained: No external CDN dependencies for zero-failure offline loads
 // ==============================================================================
 
-const SW_VERSION = 'v2.0.0';
+const SW_VERSION = 'v3.0.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -19,15 +19,7 @@ const PRECACHE_SHELL_URLS = [
   '/index.css',
   // Critical CDN libraries for Tailwind and Google Fonts
   'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap',
-  // Core runtime modules used by app
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js',
-  'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0/',
-  'https://aistudiocdn.com/react-router-dom@^7.9.6',
-  'https://aistudiocdn.com/framer-motion@^12.23.24',
-  'https://aistudiocdn.com/lucide-react@^0.555.0',
-  'https://esm.sh/react-dom@^19.2.4'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap'
 ];
 
 // ------------------------------------------------------------------------------
@@ -261,17 +253,28 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ----------------------------------------------------------------------------
+  // Bypass Vite development server internals and dynamic HMR updates
+  // ----------------------------------------------------------------------------
+  if (
+    url.pathname.includes('/@vite') ||
+    url.pathname.includes('/@react-refresh') ||
+    url.pathname.includes('/@fs/') ||
+    url.pathname.includes('/@id/') ||
+    url.pathname.includes('/node_modules/') ||
+    /\.(tsx|ts|jsx)$/i.test(url.pathname) ||
+    url.searchParams.has('t')
+  ) {
+    return;
+  }
+
+  // ----------------------------------------------------------------------------
   // Case E: Static Code, Scripts, Styles & Vite Assets (Stale-While-Revalidate / Cache-First)
   // ----------------------------------------------------------------------------
   const isStaticCode = 
     request.destination === 'script' ||
     request.destination === 'style' ||
-    /\.(js|mjs|css|tsx|ts)(\?.*)?$/i.test(url.pathname) ||
+    /\.(js|mjs|css)(\?.*)?$/i.test(url.pathname) ||
     url.pathname.startsWith('/assets/') ||
-    url.pathname.includes('/@vite/') ||
-    url.pathname.includes('/@react-refresh') ||
-    url.hostname.includes('aistudiocdn.com') ||
-    url.hostname.includes('esm.sh') ||
     url.hostname.includes('cdn.tailwindcss.com') ||
     url.hostname.includes('cdnjs.cloudflare.com');
 

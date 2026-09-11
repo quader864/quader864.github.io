@@ -3,7 +3,7 @@
 // Fully self-contained: No external CDN dependencies for zero-failure offline loads
 // ==============================================================================
 
-const SW_VERSION = 'v3.0.0';
+const SW_VERSION = 'v3.1.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -15,6 +15,8 @@ const PRECACHE_SHELL_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/sitemap.xml',
+  '/robots.txt',
   '/myiconArtboard-5.ico',
   '/index.css',
   // Critical CDN libraries for Tailwind and Google Fonts
@@ -47,9 +49,14 @@ self.addEventListener('install', (event) => {
         })
       );
 
-      // Take control of the page immediately
-      await self.skipWaiting();
-      console.log(`[SW] Service Worker ${SW_VERSION} installed & active.`);
+      // On initial install (no active service worker), activate immediately.
+      // On updates, stay in installed/waiting state so the user can be notified.
+      if (!self.registration.active) {
+        await self.skipWaiting();
+        console.log(`[SW] Service Worker ${SW_VERSION} initial install: active immediately.`);
+      } else {
+        console.log(`[SW] Service Worker ${SW_VERSION} update ready and waiting for user prompt.`);
+      }
     })()
   );
 });
@@ -77,6 +84,12 @@ self.addEventListener('activate', (event) => {
       // Claim all clients immediately so the service worker controls existing open tabs
       await self.clients.claim();
       console.log(`[SW] Clients claimed. Active & controlling clients.`);
+
+      // Inform active tabs about activation
+      const clients = await self.clients.matchAll({ type: 'window' });
+      for (const client of clients) {
+        client.postMessage({ type: 'SW_ACTIVATED', version: SW_VERSION });
+      }
     })()
   );
 });

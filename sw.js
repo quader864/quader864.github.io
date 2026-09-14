@@ -3,7 +3,7 @@
 // Fully self-contained: No external CDN dependencies for zero-failure offline loads
 // ==============================================================================
 
-const SW_VERSION = 'v3.2.0';
+const SW_VERSION = 'v3.3.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -104,6 +104,22 @@ self.addEventListener('fetch', (event) => {
 
   // Workaround for Chrome devtools cache bug
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') {
+    return;
+  }
+
+  // Bypass service worker caching for Vite dev modules, dynamic imports, HMR, and source files
+  const isViteDevOrSource = 
+    url.pathname.startsWith('/@') ||
+    url.pathname.includes('/node_modules/') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.map') ||
+    url.pathname.includes('hot-update') ||
+    url.pathname.includes('/index.tsx') ||
+    url.searchParams.has('t') ||
+    url.searchParams.has('v');
+
+  if (isViteDevOrSource) {
     return;
   }
 

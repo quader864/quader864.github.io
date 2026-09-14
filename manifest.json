@@ -1,4 +1,3 @@
-
 {
   "id": "/",
   "name": "Alireza 'Quader' Kiani | Portfolio",
@@ -9,29 +8,21 @@
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#6366f1",
-  "prefer_related_applications": false,
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "/manifest.json",
-      "id": "/"
-    }
-  ],
   "icons": [
     {
-      "src": "https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png",
+      "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png",
+      "src": "/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png",
+      "src": "/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"

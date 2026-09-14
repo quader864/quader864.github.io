@@ -3,7 +3,7 @@
 // Fully self-contained: No external CDN dependencies for zero-failure offline loads
 // ==============================================================================
 
-const SW_VERSION = 'v3.1.0';
+const SW_VERSION = 'v3.2.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -18,23 +18,23 @@ const PRECACHE_SHELL_URLS = [
   '/sitemap.xml',
   '/robots.txt',
   '/myiconArtboard-5.ico',
-  '/index.css',
-  // Critical CDN libraries for Tailwind and Google Fonts
-  'https://cdn.tailwindcss.com',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@700&display=swap'
 ];
 
 // ------------------------------------------------------------------------------
-// 1. Install Event: Precache app shell with resilient error handling
+// 1. Install Event: Precache app shell and immediately skip waiting
 // ------------------------------------------------------------------------------
 self.addEventListener('install', (event) => {
   console.log(`[SW] Installing Service Worker ${SW_VERSION}...`);
+  // Always skip waiting so new service workers activate immediately without getting stuck
+  self.skipWaiting();
 
   event.waitUntil(
     (async () => {
       const shellCache = await caches.open(CACHE_SHELL);
-      
-      // Cache URLs individually so a single network glitch doesn't abort installation
       await Promise.allSettled(
         PRECACHE_SHELL_URLS.map(async (url) => {
           try {
@@ -44,19 +44,10 @@ self.addEventListener('install', (event) => {
               await shellCache.put(request, response);
             }
           } catch (err) {
-            console.warn(`[SW Precache] Failed to cache: ${url}`, err);
+            console.debug(`[SW Precache] Failed to cache: ${url}`, err);
           }
         })
       );
-
-      // On initial install (no active service worker), activate immediately.
-      // On updates, stay in installed/waiting state so the user can be notified.
-      if (!self.registration.active) {
-        await self.skipWaiting();
-        console.log(`[SW] Service Worker ${SW_VERSION} initial install: active immediately.`);
-      } else {
-        console.log(`[SW] Service Worker ${SW_VERSION} update ready and waiting for user prompt.`);
-      }
     })()
   );
 });
@@ -81,7 +72,7 @@ self.addEventListener('activate', (event) => {
         })
       );
 
-      // Claim all clients immediately so the service worker controls existing open tabs
+      // Claim all clients immediately so the service worker controls open tabs
       await self.clients.claim();
       console.log(`[SW] Clients claimed. Active & controlling clients.`);
 
@@ -117,31 +108,23 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ----------------------------------------------------------------------------
-  // Case A: Navigation Requests (App Shell fallback for instant offline boot)
+  // Case A: Navigation Requests (Network-First with App Shell fallback)
   // ----------------------------------------------------------------------------
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
       (async () => {
         try {
-          // Attempt network fetch with a tight timeout to avoid waiting on dead connections
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-          const networkResponse = await fetch(request, { signal: controller.signal });
-          clearTimeout(timeoutId);
-
+          const networkResponse = await fetch(request);
           if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
-            // Update the shell cache in the background
             const cache = await caches.open(CACHE_SHELL);
             cache.put('/index.html', networkResponse.clone()).catch(() => {});
             cache.put('/', networkResponse.clone()).catch(() => {});
             return networkResponse;
           }
         } catch (error) {
-          console.log('[SW] Network navigation failed, falling back to cached app shell:', request.url);
+          console.debug('[SW] Network navigation failed, falling back to cached shell:', request.url);
         }
 
-        // Return cached index.html or root
         const cachedResponse = 
           (await caches.match('/index.html')) || 
           (await caches.match('/')) ||
@@ -164,7 +147,6 @@ self.addEventListener('fetch', (event) => {
   // Case B: API Requests (api.quader864.ir)
   // ----------------------------------------------------------------------------
   if (url.hostname.includes('api.quader864.ir')) {
-    // Exclude authentication, session, password reset, and private profile endpoints
     const isSensitiveAuth = 
       url.pathname.includes('/auth/') || 
       url.pathname.includes('/verify') || 
@@ -172,11 +154,9 @@ self.addEventListener('fetch', (event) => {
       url.pathname.includes('/password-reset');
 
     if (isSensitiveAuth) {
-      // Direct network pass-through, never cache sensitive credentials
       return;
     }
 
-    // Public API endpoints: Network-First with Cache Fallback for offline access
     event.respondWith(
       (async () => {
         try {
@@ -224,7 +204,6 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         } catch (error) {
-          // If offline and image not cached, attempt match ignoring search params
           const looseMatch = await caches.match(request, { ignoreSearch: true });
           if (looseMatch) return looseMatch;
           throw error;
@@ -266,85 +245,43 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ----------------------------------------------------------------------------
-  // Bypass Vite development server internals and dynamic HMR updates
+  // Case E: Static JS/CSS Assets (Stale-While-Revalidate)
   // ----------------------------------------------------------------------------
-  if (
-    url.pathname.includes('/@vite') ||
-    url.pathname.includes('/@react-refresh') ||
-    url.pathname.includes('/@fs/') ||
-    url.pathname.includes('/@id/') ||
-    url.pathname.includes('/node_modules/') ||
-    /\.(tsx|ts|jsx)$/i.test(url.pathname) ||
-    url.searchParams.has('t')
-  ) {
-    return;
-  }
-
-  // ----------------------------------------------------------------------------
-  // Case E: Static Code, Scripts, Styles & Vite Assets (Stale-While-Revalidate / Cache-First)
-  // ----------------------------------------------------------------------------
-  const isStaticCode = 
+  const isStaticAsset = 
     request.destination === 'script' ||
     request.destination === 'style' ||
-    /\.(js|mjs|css)(\?.*)?$/i.test(url.pathname) ||
-    url.pathname.startsWith('/assets/') ||
-    url.hostname.includes('cdn.tailwindcss.com') ||
-    url.hostname.includes('cdnjs.cloudflare.com');
+    url.pathname.includes('/assets/') ||
+    url.hostname.includes('cdn.tailwindcss.com');
 
-  if (isStaticCode) {
+  if (isStaticAsset) {
     event.respondWith(
       (async () => {
-        const cachedResponse = await caches.match(request);
+        const cache = await caches.open(CACHE_ASSETS);
+        const cachedResponse = await cache.match(request);
 
-        // Fetch network version to update cache in the background (or foreground if cache miss)
-        const fetchPromise = (async () => {
-          try {
-            const networkResponse = await fetch(request);
+        const fetchPromise = fetch(request)
+          .then((networkResponse) => {
             if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
-              const cache = await caches.open(CACHE_ASSETS);
-              await cache.put(request, networkResponse.clone());
+              cache.put(request, networkResponse.clone()).catch(() => {});
             }
             return networkResponse;
-          } catch (err) {
-            return null;
-          }
-        })();
+          })
+          .catch(() => null);
 
-        // If we have a cached copy, return it immediately for instant offline load
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // Otherwise wait for network
-        const freshResponse = await fetchPromise;
-        if (freshResponse) {
-          return freshResponse;
-        }
-
-        // Loose match fallback (ignore query string like ?v=... or ?t=...)
-        const fallbackMatch = await caches.match(request, { ignoreSearch: true });
-        if (fallbackMatch) {
-          return fallbackMatch;
-        }
-
-        throw new Error(`[SW] Resource not available offline: ${request.url}`);
+        return cachedResponse || (await fetchPromise) || fetch(request);
       })()
     );
     return;
   }
 
   // ----------------------------------------------------------------------------
-  // Case F: Generic Fallback (Network-First with cache fallback)
+  // Default: Network with Cache Fallback
   // ----------------------------------------------------------------------------
   event.respondWith(
     (async () => {
       try {
-        const networkResponse = await fetch(request);
-        if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
-          const cache = await caches.open(CACHE_ASSETS);
-          cache.put(request, networkResponse.clone()).catch(() => {});
-        }
-        return networkResponse;
+        const response = await fetch(request);
+        return response;
       } catch (error) {
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
@@ -357,7 +294,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 4. Message Event: Support immediate activation & programmatic caching
+// 4. Message Event: Support immediate activation, notifications, and caching
 // ------------------------------------------------------------------------------
 self.addEventListener('message', (event) => {
   if (!event.data) return;
@@ -365,6 +302,33 @@ self.addEventListener('message', (event) => {
   if (event.data.type === 'SKIP_WAITING') {
     console.log('[SW] SKIP_WAITING received, activating immediately.');
     self.skipWaiting();
+  }
+
+  // Display rich notification directly from service worker
+  if (event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  }
+
+  // Schedule notification to show after a delay even if the app/tab is closed
+  if (event.data.type === 'SCHEDULE_NOTIFICATION') {
+    const { title, options, delayMs = 5000 } = event.data;
+    console.log(`[SW] Scheduling notification in ${delayMs}ms (will fire even if app is closed)`);
+    event.waitUntil(
+      new Promise((resolve) => {
+        setTimeout(async () => {
+          try {
+            await self.registration.showNotification(title, options);
+            console.log('[SW] Scheduled notification displayed successfully');
+          } catch (err) {
+            console.warn('[SW] Scheduled notification error:', err);
+          }
+          resolve();
+        }, delayMs);
+      })
+    );
   }
 
   if (event.data.type === 'PRECACHE_URLS' && Array.isArray(event.data.urls)) {
@@ -379,7 +343,7 @@ self.addEventListener('message', (event) => {
                 await cache.put(u, res);
               }
             } catch (e) {
-              console.warn('[SW] Could not precache URL:', u, e);
+              console.debug('[SW] Could not precache URL:', u, e);
             }
           })
         );
@@ -387,3 +351,125 @@ self.addEventListener('message', (event) => {
     );
   }
 });
+
+// ------------------------------------------------------------------------------
+// 5. Web Push Notification Event (fires even when the browser/app is closed)
+// ------------------------------------------------------------------------------
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push notification payload received');
+  let payload = {
+    title: '🌐 Check Out New Posts | Quader Portfolio',
+    body: 'New quantitative engineering and web systems posts are live. Click to view now!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    image: '/icon-512.png',
+    data: { url: '/#/blog' },
+    actions: [
+      { action: 'open-blog', title: 'Check Out Posts' },
+      { action: 'open-app', title: 'Open App' },
+      { action: 'play-audio', title: 'Play Audio' }
+    ]
+  };
+
+  if (event.data) {
+    try {
+      payload = { ...payload, ...event.data.json() };
+    } catch {
+      payload.body = event.data.text() || payload.body;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: payload.icon || '/icon-192.png',
+      badge: payload.badge || '/icon-192.png',
+      image: payload.image || '/icon-512.png',
+      vibrate: [200, 100, 200, 100, 200],
+      requireInteraction: true,
+      tag: payload.tag || 'quader-push-notification',
+      renotify: true,
+      data: payload.data || { url: '/#/blog' },
+      actions: payload.actions || [
+        { action: 'open-blog', title: 'Check Out Posts' },
+        { action: 'open-app', title: 'Open App' },
+        { action: 'play-audio', title: 'Play Audio' }
+      ]
+    })
+  );
+});
+
+// ------------------------------------------------------------------------------
+// 6. Notification Click & Action Routing Event
+// ------------------------------------------------------------------------------
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const action = event.action;
+  const data = event.notification.data || {};
+  let targetUrl = '/#/';
+
+  if (action === 'open-blog') {
+    targetUrl = '/#/blog';
+  } else if (action === 'open-app') {
+    targetUrl = '/#/';
+  } else if (data.url) {
+    targetUrl = data.url;
+  }
+
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      
+      // If client exists, focus and navigate
+      for (const client of allClients) {
+        if ('focus' in client) {
+          if (action === 'play-audio') {
+            client.postMessage({ type: 'PLAY_NOTIFICATION_AUDIO' });
+          }
+          await client.focus();
+          if ('navigate' in client && targetUrl) {
+            await client.navigate(targetUrl);
+          }
+          return;
+        }
+      }
+
+      // If app was closed, open a new window!
+      if (self.clients.openWindow) {
+        const newClient = await self.clients.openWindow(targetUrl);
+        if (newClient && action === 'play-audio') {
+          setTimeout(() => {
+            newClient.postMessage({ type: 'PLAY_NOTIFICATION_AUDIO' });
+          }, 800);
+        }
+      }
+    })()
+  );
+});
+
+// ------------------------------------------------------------------------------
+// 7. Background Sync Event (triggers reconnect notifications when network is back)
+// ------------------------------------------------------------------------------
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'online-reconnect-sync' || event.tag === 'check-new-posts') {
+    event.waitUntil(
+      self.registration.showNotification('🌐 Back Online: Check Out New Posts!', {
+        body: 'You are reconnected to the internet. Explore new quantitative insights and blog posts on Quader Systems.',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        image: '/icon-512.png',
+        vibrate: [200, 100, 200, 100, 200],
+        requireInteraction: true,
+        tag: 'reconnected-notification',
+        renotify: true,
+        data: { url: '/#/blog' },
+        actions: [
+          { action: 'open-blog', title: 'Check Out Posts' },
+          { action: 'open-app', title: 'Open App' },
+          { action: 'play-audio', title: 'Play Audio' }
+        ]
+      })
+    );
+  }
+});
+

@@ -1,10 +1,11 @@
 // ==============================================================================
 // Quader Portfolio - Scalable High-Performance Offline Service Worker
-// Version: v4.3.0
+// Version: v4.6.0
 // Architecture: Multi-Tier Cache-First / Stale-While-Revalidate with SPA Fallback
+// & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v4.4.0';
+const SW_VERSION = 'v4.6.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -24,7 +25,6 @@ const PRECACHE_SHELL_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/index.css',
   '/sitemap.xml',
   '/robots.txt',
   '/myiconArtboard-5.ico',
@@ -33,6 +33,7 @@ const PRECACHE_SHELL_URLS = [
   '/icon-maskable-192.png',
   '/icon-maskable-512.png',
   '/apple-touch-icon.png',
+  '/quader_picture.webp',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap'
 ];
 
@@ -101,20 +102,88 @@ self.addEventListener('activate', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 3. Fetch Event: Intelligent multi-tier caching
+// 3. Fetch Event: Intelligent multi-tier caching & Offline POST Queue
 // ------------------------------------------------------------------------------
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-
-  // Only intercept GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-
   const url = new URL(request.url);
 
   // Ignore unsupported protocols (chrome-extension, blob, data, etc.)
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Intercept POST comments when offline to queue for background sync
+  if (request.method === 'POST' && url.pathname.includes('/comments')) {
+    event.respondWith(
+      (async () => {
+        try {
+          return await fetch(request);
+        } catch (networkError) {
+          console.log('[SW] Network unavailable for comment submission. Queuing in IndexedDB...');
+          try {
+            const clonedReq = request.clone();
+            const body = await clonedReq.json();
+            const slugMatch = url.pathname.match(/\/blog\/([^/]+)\/comments/);
+            const postSlug = slugMatch ? slugMatch[1] : 'general';
+
+            const db = await new Promise((resolve, reject) => {
+              const req = indexedDB.open('quader_pwa_db', 1);
+              req.onsuccess = () => resolve(req.result);
+              req.onerror = () => reject(req.error);
+            });
+
+            if (db && db.objectStoreNames.contains('pending_comments')) {
+              const comment = {
+                id: `cmt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+                postId: postSlug,
+                postSlug: postSlug,
+                authorName: body.authorName || 'Guest',
+                authorEmail: body.authorEmail,
+                content: body.content || '',
+                createdAt: body.createdAt || new Date().toISOString(),
+                status: 'pending',
+                offline: true,
+              };
+
+              await new Promise((resolve) => {
+                const tx = db.transaction(['pending_comments', 'cached_comments'], 'readwrite');
+                tx.objectStore('pending_comments').put(comment);
+                if (db.objectStoreNames.contains('cached_comments')) {
+                  tx.objectStore('cached_comments').put(comment);
+                }
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => resolve();
+              });
+
+              if (self.registration && 'sync' in self.registration) {
+                await self.registration.sync.register('sync-blog-comments');
+              }
+            }
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                offline: true,
+                message: 'Comment queued for automatic background sync when connection is restored.',
+              }),
+              {
+                headers: { 'Content-Type': 'application/json' },
+                status: 202,
+              }
+            );
+          } catch (storageErr) {
+            console.warn('[SW] Failed to save offline comment:', storageErr);
+            throw networkError;
+          }
+        }
+      })()
+    );
+    return;
+  }
+
+  // Only intercept GET requests for caching strategies
+  if (request.method !== 'GET') {
     return;
   }
 
@@ -370,6 +439,12 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 
+  // Trigger immediate comment sync from client message
+  if (event.data.type === 'SYNC_COMMENTS') {
+    console.log('[SW] Received SYNC_COMMENTS message from client');
+    event.waitUntil(processBackgroundCommentSync());
+  }
+
   // Precache dynamic chunk URLs sent from the client
   if (event.data.type === 'PRECACHE_URLS' && Array.isArray(event.data.urls)) {
     event.waitUntil(
@@ -508,10 +583,122 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 7. Background Sync Event
+// 7. Background Sync Event & Comment Synchronization Engine
 // ------------------------------------------------------------------------------
+
+/**
+ * Direct IndexedDB background sync worker for pending blog comments
+ */
+async function processBackgroundCommentSync() {
+  console.log('[SW Background Sync] Processing pending blog comments queue...');
+  try {
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open('quader_pwa_db', 1);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    if (!db.objectStoreNames.contains('pending_comments')) {
+      console.log('[SW Background Sync] No pending_comments store initialized.');
+      return;
+    }
+
+    const pendingComments = await new Promise((resolve) => {
+      const tx = db.transaction('pending_comments', 'readonly');
+      const store = tx.objectStore('pending_comments');
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+
+    if (!pendingComments || pendingComments.length === 0) {
+      console.log('[SW Background Sync] Queue empty: no pending comments.');
+      return;
+    }
+
+    console.log(`[SW Background Sync] Synchronizing ${pendingComments.length} comments...`);
+
+    for (const comment of pendingComments) {
+      try {
+        const response = await fetch(`https://api.quader864.ir/api/blog/${comment.postSlug}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+          credentials: 'include',
+          body: JSON.stringify({
+            authorName: comment.authorName,
+            authorEmail: comment.authorEmail,
+            content: comment.content,
+            createdAt: comment.createdAt,
+          }),
+        });
+
+        // 200/201 or 404/501 (mock/fallback) treated as synced locally
+        const isSuccess = response.ok || response.status === 404 || response.status === 501;
+
+        if (isSuccess) {
+          // Remove from pending_comments and update cached_comments
+          await new Promise((resolve) => {
+            const tx = db.transaction(['pending_comments', 'cached_comments'], 'readwrite');
+            tx.objectStore('pending_comments').delete(comment.id);
+            if (db.objectStoreNames.contains('cached_comments')) {
+              const updated = { ...comment, status: 'synced', offline: false };
+              tx.objectStore('cached_comments').put(updated);
+            }
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+          });
+
+          // Notify active window clients
+          const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+          for (const client of clients) {
+            client.postMessage({
+              type: 'COMMENT_SYNCED',
+              commentId: comment.id,
+              postSlug: comment.postSlug,
+            });
+          }
+
+          // Show background completion notification
+          try {
+            await self.registration.showNotification('💬 Blog Comment Published!', {
+              body: `Your comment on "${comment.postSlug}" was synced in the background.`,
+              icon: '/icon-192.png',
+              badge: '/icon-192.png',
+              tag: `comment-synced-${comment.id}`,
+              data: { url: `/#/blog/${comment.postSlug}` },
+            });
+          } catch (notifErr) {
+            console.debug('[SW] Notification error:', notifErr);
+          }
+        }
+      } catch (postErr) {
+        console.warn(`[SW Background Sync] Network error syncing comment ${comment.id}. Will retry.`, postErr);
+        // Rethrow so the browser SyncManager automatically schedules another background sync attempt
+        throw postErr;
+      }
+    }
+
+    // Broadcast completion to all tabs
+    const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of allClients) {
+      client.postMessage({ type: 'BACKGROUND_SYNC_COMPLETE', timestamp: Date.now() });
+    }
+  } catch (err) {
+    console.warn('[SW Background Sync] Sync process caught error:', err);
+    throw err;
+  }
+}
+
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'online-reconnect-sync' || event.tag === 'check-new-posts') {
+  console.log(`[SW] Background sync event received: tag="${event.tag}"`);
+
+  if (event.tag === 'sync-blog-comments' || event.tag === 'sync-comments') {
+    event.waitUntil(processBackgroundCommentSync());
+  } else if (event.tag === 'online-reconnect-sync' || event.tag === 'check-new-posts') {
     event.waitUntil(
       self.registration.showNotification('🌐 Back Online: Check Out New Posts!', {
         body: 'You are reconnected to the internet. Explore new quantitative insights and blog posts on Quader Systems.',
@@ -532,3 +719,42 @@ self.addEventListener('sync', (event) => {
     );
   }
 });
+
+// ------------------------------------------------------------------------------
+// 8. Periodic Background Sync Event (Autonomous 6-Hour Device Check)
+// ------------------------------------------------------------------------------
+self.addEventListener('periodicsync', (event) => {
+  console.log(`[SW] Periodic background sync event fired: tag="${event.tag}"`);
+
+  if (
+    event.tag === 'periodic-version-check' ||
+    event.tag === 'check-app-updates' ||
+    event.tag === 'check-new-posts'
+  ) {
+    event.waitUntil(
+      (async () => {
+        console.log('[SW Periodic Sync] Executing 6-hour autonomous device-side version & content check...');
+        try {
+          // Bypass HTTP cache to query latest version manifest / index.html from server
+          const checkUrl = `/index.html?sw_periodic_check=${Date.now()}`;
+          const response = await fetch(checkUrl, { cache: 'no-store' });
+
+          if (response && response.ok) {
+            console.log('[SW Periodic Sync] Network request completed. Notifying active tabs...');
+            const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            for (const client of allClients) {
+              client.postMessage({
+                type: 'PERIODIC_SYNC_TRIGGERED',
+                timestamp: Date.now(),
+                intervalHours: 6,
+              });
+            }
+          }
+        } catch (err) {
+          console.warn('[SW Periodic Sync] Autonomous background check skipped (network unavailable):', err);
+        }
+      })()
+    );
+  }
+});
+

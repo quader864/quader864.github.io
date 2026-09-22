@@ -137,42 +137,13 @@
     <!-- Performance Resource Preconnects -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://i.postimg.cc">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-              number: ['Space Grotesk', 'JetBrains Mono', 'sans-serif'],
-            },
-            colors: {
-              slate: {
-                850: '#151e2e',
-                900: '#0f172a',
-                950: '#020617',
-              },
-              accent: {
-                500: '#6366f1',
-                600: '#4f46e5',
-                400: '#818cf8',
-                300: '#a5b4fc',
-                900: '#312e81',
-              }
-            }
-          }
-        }
-      }
-    </script>
+    <!-- Critical LCP Image Preload -->
+    <link rel="preload" as="image" href="/quader_picture.webp" type="image/webp" fetchpriority="high">
     <script>
       (function() {
         try {
@@ -209,12 +180,10 @@
         -webkit-touch-callout: none;
       }
       body {
-        @apply bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200;
         overflow-x: hidden;
         max-width: 100%;
         width: 100%;
         margin: 0;
-        transition: background-color 0.3s, color 0.3s;
         position: relative;
         -webkit-user-select: none;
         user-select: none;
@@ -236,13 +205,12 @@
         font-variant-numeric: tabular-nums;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-B-EJBSxR.js"></script>
+    <script type="module" crossorigin src="/assets/index-aUZ0Noym.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-DYIp3GNO.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-motion-Cka5gROm.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-icons-BrFQ56yb.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-gsap-CzGW6FVa.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-three-B3rW0ZLE.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-DW6PDal3.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-BB5SehDq.css">
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <div id="root"></div>

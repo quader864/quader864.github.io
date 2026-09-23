@@ -4,6 +4,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <script>
+      (function() {
+        try {
+          var host = window.location.hostname;
+          var isRestricted = host.includes('run.app') || 
+                             host.includes('ais-dev-') || 
+                             host.includes('ais-pre-') || 
+                             host.includes('aistudio') || 
+                             host === 'localhost' || 
+                             host === '127.0.0.1' || 
+                             window.location.port === '3000';
+
+          if ('serviceWorker' in navigator && isRestricted) {
+            var hadController = !!navigator.serviceWorker.controller;
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              if (registrations.length > 0) {
+                var unregisters = registrations.map(function(reg) {
+                  return reg.unregister();
+                });
+                return Promise.all(unregisters).then(function() {
+                  if ('caches' in window) {
+                    return caches.keys().then(function(keys) {
+                      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                    });
+                  }
+                }).then(function() {
+                  if (hadController && !sessionStorage.getItem('__sw_purged_reload')) {
+                    sessionStorage.setItem('__sw_purged_reload', 'true');
+                    window.location.reload();
+                  }
+                });
+              }
+            }).catch(function() {});
+          }
+        } catch(e) {}
+      })();
+    </script>
     
     <!-- Primary Meta Tags & SEO -->
     <title>Alireza "Quader" Kiani | Portfolio & Quantitative Systems</title>
@@ -204,32 +241,16 @@
         font-feature-settings: 'tnum' 1, 'zero' 1;
         font-variant-numeric: tabular-nums;
       }
-    </style>
-    <script type="module" crossorigin src="/assets/index-B7flNiAL.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-react-DYIp3GNO.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-motion-Cka5gROm.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-Bkw8fw4x.js">
+    </style>
+    <script type="module" crossorigin src="/assets/index-DKbJxPLZ.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-DkaTgE3a.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-motion-nKnMngmD.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-lMvbQu6T.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-gsap-CzGW6FVa.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-D5Chlbv0.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-BBdb62bH.css">
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <div id="root"></div>
-
-
-
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
-            .then((reg) => {
-              window.__swRegistration = reg;
-              window.dispatchEvent(new CustomEvent('pwa-sw-registered', { detail: reg }));
-            })
-            .catch((err) => {
-              console.warn('[SW] Registration error:', err);
-            });
-        });
-      }
-    </script>
+
   </body>
 </html>

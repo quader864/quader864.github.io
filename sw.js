@@ -5,7 +5,7 @@
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v4.6.0';
+const SW_VERSION = 'v4.7.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;

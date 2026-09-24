@@ -1,0 +1,88 @@
+{
+  "id": "/",
+  "name": "Alireza 'Quader' Kiani | Portfolio",
+  "short_name": "Quader",
+  "description": "Official portfolio and quantitative engineering showcase of Alireza Kiani (Quader).",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "window-controls-overlay"
+  ],
+  "orientation": "any",
+  "background_color": "#020617",
+  "theme_color": "#6366f1",
+  "categories": [
+    "business",
+    "finance",
+    "productivity",
+    "utilities"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Portfolio",
+      "short_name": "Portfolio",
+      "description": "View projects and quantitative algorithmic trading systems",
+      "url": "/#/portfolio",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Stability Calculator",
+      "short_name": "Calculator",
+      "description": "Simulate and test quantitative trading stability",
+      "url": "/#/stability-calculator",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Quantitative Blog",
+      "short_name": "Blog",
+      "description": "Read engineering and architectural posts",
+      "url": "/#/blog",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

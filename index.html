@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <script>
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+    </script>
+    <script>
+      (function() {
+        try {
+          var host = window.location.hostname;
+          var isRestricted = host.includes('run.app') || 
+                             host.includes('ais-dev-') || 
+                             host.includes('ais-pre-') || 
+                             host.includes('aistudio') || 
+                             host === 'localhost' || 
+                             host === '127.0.0.1' || 
+                             window.location.port === '3000';
+
+          if ('serviceWorker' in navigator && isRestricted) {
+            var hadController = !!navigator.serviceWorker.controller;
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              if (registrations.length > 0) {
+                var unregisters = registrations.map(function(reg) {
+                  return reg.unregister();
+                });
+                return Promise.all(unregisters).then(function() {
+                  if ('caches' in window) {
+                    return caches.keys().then(function(keys) {
+                      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                    });
+                  }
+                }).then(function() {
+                  if (hadController && !sessionStorage.getItem('__sw_purged_reload')) {
+                    sessionStorage.setItem('__sw_purged_reload', 'true');
+                    window.location.reload();
+                  }
+                });
+              }
+            }).catch(function() {});
+          }
+        } catch(e) {}
+      })();
+    </script>
+    
+    <!-- Primary Meta Tags & SEO -->
+    <title>Alireza "Quader" Kiani | Portfolio & Quantitative Systems</title>
+    <meta name="title" content="Alireza &quot;Quader&quot; Kiani | Portfolio &amp; Quantitative Systems" />
+    <meta name="description" content="Official portfolio and engineering showcase of Alireza Kiani (known as Quader). Specializing in MetaTrader MQL5 quantitative systems, algorithmic trading architecture, WebGL graphics, and full-stack React web applications." />
+    <meta name="keywords" content="Alireza Kiani, Quader, Quader Systems, Alireza Kiani Quader, Quantitative Architecture, MQL5, MetaTrader 5 Expert Advisor, Algorithmic Trading, HedgeEA, Web Development, React, TypeScript, Quantitative Engineering, Motion Graphics" />
+    <meta name="author" content="Alireza Kiani (Quader)" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://quader864.ir/" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content="https://quader864.ir/" />
+    <meta property="og:title" content="Alireza &quot;Quader&quot; Kiani | Quantitative Systems Architect &amp; Full-Stack Engineer" />
+    <meta property="og:description" content="Explore the portfolio of Alireza Kiani (Quader) — featuring MQL5 algorithmic systems, HedgeEA trading engines, interactive WebGL applications, and motion design." />
+    <meta property="og:image" content="https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png" />
+    <meta property="og:image:alt" content="Alireza Kiani (Quader) - Portfolio &amp; Quantitative Architecture" />
+    <meta property="og:site_name" content="Quader Systems" />
+    <meta property="profile:first_name" content="Alireza" />
+    <meta property="profile:last_name" content="Kiani" />
+    <meta property="profile:username" content="quader" />
+
+    <!-- Twitter / X -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://quader864.ir/" />
+    <meta property="twitter:title" content="Alireza &quot;Quader&quot; Kiani | Portfolio &amp; Quantitative Systems" />
+    <meta property="twitter:description" content="Explore the portfolio of Alireza Kiani (Quader) — featuring MQL5 algorithmic systems, HedgeEA trading engines, interactive WebGL applications, and motion design." />
+    <meta property="twitter:image" content="https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png" />
+    <meta name="twitter:creator" content="@quader864" />
+
+    <!-- JSON-LD Structured Data Schema for Search Engines (Knowledge Graph & Person Entity) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": "https://quader864.ir/#person",
+          "name": "Alireza Kiani",
+          "alternateName": ["Quader", "quader864", "Alireza 'Quader' Kiani"],
+          "url": "https://quader864.ir/",
+          "image": {
+            "@type": "ImageObject",
+            "url": "https://i.postimg.cc/CxSvkc1Z/Asset-1-4x.png",
+            "caption": "Alireza Kiani (Quader)"
+          },
+          "jobTitle": "Quantitative Systems Architect & Full-Stack Developer",
+          "description": "Alireza Kiani (known as Quader) is a quantitative software engineer specializing in MQL5 MetaTrader 5 algorithmic execution engines, automated trading architectures, WebGL graphics, and modern web application development.",
+          "email": "contact@quader864.ir",
+          "worksFor": {
+            "@type": "Organization",
+            "name": "Quader Systems",
+            "url": "https://quader864.ir/"
+          },
+          "knowsAbout": [
+            "Quantitative Trading Systems",
+            "MQL5 MetaTrader 5",
+            "Algorithmic Execution & Hedging Engines",
+            "React & TypeScript Full-Stack Engineering",
+            "WebGL & GLSL Shader Programming",
+            "Motion Graphics & Visual Systems",
+            "Risk Management & Prop Firm Compliance"
+          ],
+          "sameAs": [
+            "https://github.com/quader864",
+            "https://t.me/quader864"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://quader864.ir/#website",
+          "url": "https://quader864.ir/",
+          "name": "Quader Systems - Alireza Kiani Portfolio",
+          "description": "Official showcase of quantitative architecture, algorithmic systems, and creative technology by Alireza Kiani (Quader).",
+          "publisher": {
+            "@id": "https://quader864.ir/#person"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://quader864.ir/#/blog?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "ProfilePage",
+          "@id": "https://quader864.ir/#profilepage",
+          "url": "https://quader864.ir/",
+          "name": "Alireza Kiani (Quader) Portfolio Profile",
+          "isPartOf": {
+            "@id": "https://quader864.ir/#website"
+          },
+          "about": {
+            "@id": "https://quader864.ir/#person"
+          },
+          "mainEntity": {
+            "@id": "https://quader864.ir/#person"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="/myiconArtboard-5.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Quader" />
+
+    <script>
+      // Capture PWA install prompt immediately so it is never lost before React mounts
+      window.__pwaInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__pwaInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-install-prompt-ready', { detail: e }));
+      });
+      window.addEventListener('appinstalled', function () {
+        window.__pwaInstalled = true;
+        window.__pwaInstallPrompt = null;
+        window.dispatchEvent(new CustomEvent('pwa-app-installed'));
+      });
+    </script>
+    
+    <!-- Performance Resource Preconnects -->
+    <link rel="preconnect" href="https://api.quader864.ir" crossorigin />
+    <link rel="dns-prefetch" href="https://api.quader864.ir" />
+    <link rel="dns-prefetch" href="https://i.postimg.cc" />
+    
+    <!-- Critical Font Preloads (Self-Hosted Latin WOFF2 for LCP Typography) -->
+    <link rel="preload" href="/fonts/inter-600-20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-700-27.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- Critical LCP Image Preloads & Discovery -->
+    <link rel="preload" as="image" href="/images/hero/quader_picture-480.avif" type="image/avif" fetchpriority="high" />
+    <link 
+      rel="preload" 
+      as="image" 
+      type="image/avif" 
+      imagesrcset="/images/hero/quader_picture-320.avif 320w, /images/hero/quader_picture-480.avif 480w, /images/hero/quader_picture-640.avif 640w, /images/hero/quader_picture-908.avif 908w" 
+      imagesizes="(max-width: 640px) 220px, (max-width: 1024px) 340px, 410px" 
+      fetchpriority="high"
+    />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          if (saved === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else if (saved === 'light') {
+            document.documentElement.classList.remove('dark');
+          } else {
+            // Default based on device system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+          }
+        } catch (e) {
+          // Fallback safely if localStorage is restricted
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          }
+        }
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: dark light;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        background-color: #020617;
+      }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        position: relative;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        background-color: #020617;
+        color: #f8fafc;
+      }
+      html:not(.dark) body {
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+      html.dark body {
+        background-color: #020617;
+        color: #f8fafc;
+      }
+      #root {
+        overflow-x: hidden;
+        max-width: 100%;
+        width: 100%;
+        min-height: 100vh;
+      }
+      
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+      .font-number {
+        font-family: 'Space Grotesk', 'JetBrains Mono', monospace, sans-serif;
+        font-feature-settings: 'tnum' 1, 'zero' 1;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-CxONt8dR.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Di1KXTZo.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-B64grDdN.js">
+    <link rel="preload" href="/assets/index-J8Ml6kFD.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-J8Ml6kFD.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-J8Ml6kFD.css"></noscript>
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
+    <div id="root">
+      <!-- Immediate LCP Request Discovery for HTML Pre-Scanner -->
+      <picture style="display:none;" aria-hidden="true">
+        <source type="image/avif" srcset="/images/hero/quader_picture-320.avif 320w, /images/hero/quader_picture-480.avif 480w, /images/hero/quader_picture-640.avif 640w, /images/hero/quader_picture-908.avif 908w" sizes="(max-width: 640px) 220px, (max-width: 1024px) 340px, 410px" />
+        <img src="/images/hero/quader_picture-480.avif" alt="Alireza 'Quader' Kiani" fetchpriority="high" decoding="sync" />
+      </picture>
+    </div>
+
+  </body>
+</html>

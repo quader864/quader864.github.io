@@ -5,6 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <script>
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+    </script>
+    <script>
       (function() {
         try {
           var host = window.location.hostname;
@@ -180,8 +192,16 @@
     <link rel="preload" href="/fonts/inter-600-20.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-700-27.woff2" as="font" type="font/woff2" crossorigin />
     
-    <!-- Critical LCP Image Preload -->
-    <link rel="preload" as="image" href="/images/hero/quader_picture-480.webp" type="image/webp" fetchpriority="high">
+    <!-- Critical LCP Image Preloads & Discovery -->
+    <link rel="preload" as="image" href="/images/hero/quader_picture-480.avif" type="image/avif" fetchpriority="high" />
+    <link 
+      rel="preload" 
+      as="image" 
+      type="image/avif" 
+      imagesrcset="/images/hero/quader_picture-320.avif 320w, /images/hero/quader_picture-480.avif 480w, /images/hero/quader_picture-640.avif 640w, /images/hero/quader_picture-908.avif 908w" 
+      imagesizes="(max-width: 640px) 220px, (max-width: 1024px) 340px, 410px" 
+      fetchpriority="high"
+    />
     <script>
       (function() {
         try {
@@ -259,15 +279,21 @@
         font-variant-numeric: tabular-nums;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-CtM8zbIS.js"></script>
+    <script type="module" crossorigin src="/assets/index-BLiOl-9M.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-CeZmHp3w.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-D0AMeQvs.js">
-    <link rel="preload" href="/assets/index-CdV7oOZZ.css" as="style" fetchpriority="high">
-    <link rel="stylesheet" href="/assets/index-CdV7oOZZ.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/assets/index-CdV7oOZZ.css"></noscript>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-BhI0yAhg.js">
+    <link rel="preload" href="/assets/index-C6qH8DBT.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-C6qH8DBT.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-C6qH8DBT.css"></noscript>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Immediate LCP Request Discovery for HTML Pre-Scanner -->
+      <picture style="display:none;" aria-hidden="true">
+        <source type="image/avif" srcset="/images/hero/quader_picture-320.avif 320w, /images/hero/quader_picture-480.avif 480w, /images/hero/quader_picture-640.avif 640w, /images/hero/quader_picture-908.avif 908w" sizes="(max-width: 640px) 220px, (max-width: 1024px) 340px, 410px" />
+        <img src="/images/hero/quader_picture-480.avif" alt="Alireza 'Quader' Kiani" fetchpriority="high" decoding="sync" />
+      </picture>
+    </div>
 
   </body>
 </html>

@@ -8,6 +8,14 @@
     <priority>1.0</priority>
   </url>
 
+  <!-- About Alireza Kiani -->
+  <url>
+    <loc>https://quader864.ir/about-alireza-kiani</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
   <!-- Portfolio of Works & Projects -->
   <url>
     <loc>https://quader864.ir/portfolio</loc>

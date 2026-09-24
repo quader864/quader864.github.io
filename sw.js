@@ -549,6 +549,29 @@ self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data || {};
   let targetUrl = '/#/';
 
+  if (action === 'update' || data.action === 'update') {
+    self.skipWaiting();
+    event.waitUntil(
+      (async () => {
+        const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of allClients) {
+          if ('focus' in client) {
+            client.postMessage({ type: 'PERFORM_UPDATE_RELOAD' });
+            await client.focus();
+            if ('navigate' in client) {
+              await client.navigate('/#/');
+            }
+            return;
+          }
+        }
+        if (self.clients.openWindow) {
+          await self.clients.openWindow('/#/');
+        }
+      })()
+    );
+    return;
+  }
+
   if (action === 'open-blog') {
     targetUrl = '/#/blog';
   } else if (action === 'open-app') {
@@ -725,8 +748,88 @@ self.addEventListener('sync', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 8. Periodic Background Sync Event (Autonomous 6-Hour Device Check)
+// 8. Background Version & Status Checking Engine (Runs in Background even when App is closed)
 // ------------------------------------------------------------------------------
+async function runBackgroundVersionCheck() {
+  console.log('[SW] Running 6-hour background status check...');
+
+  if (typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
+    try {
+      await self.registration.showNotification('Quader Portfolio', {
+        body: 'waiting for network',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'sw-update-status',
+        renotify: true,
+      });
+    } catch (e) {
+      console.debug('[SW] Notification dispatch error:', e);
+    }
+    return;
+  }
+
+  try {
+    const checkUrl = `/index.html?sw_periodic_check=${Date.now()}`;
+    const response = await fetch(checkUrl, { cache: 'no-store' });
+
+    if (!response || !response.ok) {
+      await self.registration.showNotification('Quader Portfolio', {
+        body: 'waiting for network',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'sw-update-status',
+        renotify: true,
+      });
+      return;
+    }
+
+    const reg = self.registration;
+    if (reg.waiting || reg.installing) {
+      await self.registration.showNotification('Quader Portfolio', {
+        body: 'needs to be updated press to update',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'sw-update-status',
+        renotify: true,
+        data: { action: 'update', url: '/#/' },
+        actions: [
+          { action: 'update', title: 'Press to update' }
+        ]
+      });
+    } else {
+      await self.registration.showNotification('Quader Portfolio', {
+        body: 'the app is updated',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'sw-update-status',
+        renotify: true,
+      });
+    }
+  } catch (err) {
+    try {
+      await self.registration.showNotification('Quader Portfolio', {
+        body: 'waiting for network',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'sw-update-status',
+        renotify: true,
+      });
+    } catch (e) {
+      console.debug('[SW] Notification error:', e);
+    }
+  }
+}
+
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'RUN_BACKGROUND_VERSION_CHECK') {
+    event.waitUntil(runBackgroundVersionCheck());
+  }
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('periodicsync', (event) => {
   console.log(`[SW] Periodic background sync event fired: tag="${event.tag}"`);
 
@@ -735,30 +838,7 @@ self.addEventListener('periodicsync', (event) => {
     event.tag === 'check-app-updates' ||
     event.tag === 'check-new-posts'
   ) {
-    event.waitUntil(
-      (async () => {
-        console.log('[SW Periodic Sync] Executing 6-hour autonomous device-side version & content check...');
-        try {
-          // Bypass HTTP cache to query latest version manifest / index.html from server
-          const checkUrl = `/index.html?sw_periodic_check=${Date.now()}`;
-          const response = await fetch(checkUrl, { cache: 'no-store' });
-
-          if (response && response.ok) {
-            console.log('[SW Periodic Sync] Network request completed. Notifying active tabs...');
-            const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-            for (const client of allClients) {
-              client.postMessage({
-                type: 'PERIODIC_SYNC_TRIGGERED',
-                timestamp: Date.now(),
-                intervalHours: 6,
-              });
-            }
-          }
-        } catch (err) {
-          console.warn('[SW Periodic Sync] Autonomous background check skipped (network unavailable):', err);
-        }
-      })()
-    );
+    event.waitUntil(runBackgroundVersionCheck());
   }
 });
 

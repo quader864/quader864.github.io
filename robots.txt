@@ -1,0 +1,8 @@
+# Robots.txt for Alireza "Quader" Kiani & Quader Systems
+User-agent: *
+Allow: /
+Disallow: /password-reset
+Disallow: /blog/editor
+
+# Sitemap location
+Sitemap: https://quader864.ir/sitemap.xml

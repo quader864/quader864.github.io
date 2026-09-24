@@ -5,7 +5,7 @@
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v4.7.0';
+const SW_VERSION = 'v4.8.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -34,7 +34,11 @@ const PRECACHE_SHELL_URLS = [
   '/icon-maskable-512.png',
   '/apple-touch-icon.png',
   '/quader_picture.webp',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap'
+  '/fonts/inter-400-6.woff2',
+  '/fonts/inter-600-20.woff2',
+  '/fonts/inter-700-27.woff2',
+  '/fonts/jetbrains-mono-500-33.woff2',
+  '/fonts/space-grotesk-600-42.woff2'
 ];
 
 // ------------------------------------------------------------------------------

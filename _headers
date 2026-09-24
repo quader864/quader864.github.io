@@ -1,0 +1,50 @@
+# ==============================================================================
+# HTTP Cache & Header Rules (Cloudflare Pages, Netlify, Static CDNs)
+# ==============================================================================
+
+# 1. Default for HTML Documents & Root (Ensure instant updates upon deployment)
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cache-Control: public, max-age=0, must-revalidate
+
+# 2. Immutable Fingerprinted Build Artifacts (Vite content-hashed bundles)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# 3. Service Worker Script (Never stale; always check origin for updates)
+/sw.js
+  Cache-Control: public, max-age=0, no-cache, no-store, must-revalidate
+
+# 4. Web App Manifest & Metadata
+/manifest.json
+  Cache-Control: public, max-age=86400, must-revalidate
+/robots.txt
+  Cache-Control: public, max-age=86400, must-revalidate
+/sitemap.xml
+  Cache-Control: public, max-age=86400, must-revalidate
+
+# 5. Static Icons & Branding
+/myiconArtboard-5.ico
+  Cache-Control: public, max-age=604800, must-revalidate
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800, must-revalidate
+/icon-192.png
+  Cache-Control: public, max-age=604800, must-revalidate
+/icon-512.png
+  Cache-Control: public, max-age=604800, must-revalidate
+/icon-maskable-192.png
+  Cache-Control: public, max-age=604800, must-revalidate
+/icon-maskable-512.png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+# 6. Public media, fonts & images
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+/skills/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+/quader_picture.webp
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400

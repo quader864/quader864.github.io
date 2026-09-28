@@ -60,6 +60,7 @@
     <meta name="description" content="Official portfolio and engineering showcase of Alireza Kiani (known as Quader). Specializing in MetaTrader MQL5 quantitative systems, algorithmic trading architecture, WebGL graphics, and full-stack React web applications." />
     <meta name="keywords" content="Alireza Kiani, Quader, Quader Systems, Alireza Kiani Quader, Quantitative Architecture, MQL5, MetaTrader 5 Expert Advisor, Algorithmic Trading, HedgeEA, Web Development, React, TypeScript, Quantitative Engineering, Motion Graphics" />
     <meta name="author" content="Alireza Kiani (Quader)" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://quader864.ir/" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
@@ -273,25 +274,41 @@
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
       ::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
-      .font-number {
-        font-family: 'Space Grotesk', 'JetBrains Mono', monospace, sans-serif;
-        font-feature-settings: 'tnum' 1, 'zero' 1;
-        font-variant-numeric: tabular-nums;
+      .skip-link {
+        position: absolute;
+        top: -100px;
+        left: 1rem;
+        background: #38bdf8;
+        color: #020617;
+        padding: 0.75rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.875rem;
+        border-radius: 0.5rem;
+        z-index: 99999;
+        text-decoration: none;
+        transition: top 0.2s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      }
+      .skip-link:focus {
+        top: 1rem;
+        outline: 3px solid #ffffff;
+        outline-offset: 2px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-RCF1iL3C.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Di1KXTZo.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-B64grDdN.js">
-    <link rel="preload" href="/assets/index-DPi2XtiT.css" as="style" fetchpriority="high">
-    <link rel="stylesheet" href="/assets/index-DPi2XtiT.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/assets/index-DPi2XtiT.css"></noscript>
+    <script type="module" crossorigin src="/assets/index-1P9Yo9m8.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Ds2rZ66y.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-BYS-DYgO.js">
+    <link rel="preload" href="/assets/index-DF09ux9N.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-DF09ux9N.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-DF09ux9N.css"></noscript>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div id="root">
       <!-- Immediate LCP Request Discovery for HTML Pre-Scanner -->
       <picture style="display:none;" aria-hidden="true">
         <source type="image/avif" srcset="/images/hero/quader_picture-320.avif 320w, /images/hero/quader_picture-480.avif 480w, /images/hero/quader_picture-640.avif 640w, /images/hero/quader_picture-908.avif 908w" sizes="(max-width: 640px) 220px, (max-width: 1024px) 340px, 410px" />
-        <img src="/images/hero/quader_picture-480.avif" alt="Alireza 'Quader' Kiani" fetchpriority="high" decoding="sync" />
+        <img src="/images/hero/quader_picture-480.avif" alt="Alireza 'Quader' Kiani" width="410" height="410" fetchpriority="high" decoding="sync" />
       </picture>
     </div>
 

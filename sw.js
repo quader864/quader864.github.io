@@ -25,6 +25,7 @@ const PRECACHE_SHELL_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/offline.html',
   '/sitemap.xml',
   '/robots.txt',
   '/myiconArtboard-5.ico',
@@ -227,7 +228,7 @@ self.addEventListener('fetch', (event) => {
           console.debug('[SW] Network navigation offline, serving App Shell:', request.url);
         }
 
-        // Offline Fallback: Return cached App Shell
+        // Offline Fallback: Return cached App Shell or offline.html
         const cachedShell =
           (await caches.match('/index.html')) ||
           (await caches.match('/')) ||
@@ -235,6 +236,11 @@ self.addEventListener('fetch', (event) => {
 
         if (cachedShell) {
           return cachedShell;
+        }
+
+        const cachedOffline = await caches.match('/offline.html');
+        if (cachedOffline) {
+          return cachedOffline;
         }
 
         return new Response(

@@ -1,4 +1,4 @@
-import{r as s,a as E,j as e,L as v,R}from"./vendor-react-Ds2rZ66y.js";import{g as a,S as A}from"./vendor-animation-Cn7dyEHu.js";import{F as z,I as M,J as S,K as q,N as L,A as B,O as j,l as I,Q as _}from"./vendor-icons-Wkhtj8JK.js";typeof window<"u"&&a.registerPlugin(A);const C=`
+import{r as s,a as E,j as e,L as v,R}from"./vendor-react-Ds2rZ66y.js";import{g as a,S as A}from"./vendor-animation-Cn7dyEHu.js";import{F as z,I as M,J as S,K as q,N as L,A as B,O as j,l as I,Q as _}from"./vendor-icons-DW4PjvKD.js";typeof window<"u"&&a.registerPlugin(A);const C=`
 .cinematic-footer-wrapper {
   font-family: inherit;
   -webkit-font-smoothing: antialiased;

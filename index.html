@@ -172,6 +172,17 @@
     <script>
       // Capture PWA install prompt immediately so it is never lost before React mounts
       window.__pwaInstallPrompt = null;
+      try {
+        if (
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+          window.matchMedia('(display-mode: minimal-ui)').matches ||
+          window.navigator.standalone === true
+        ) {
+          window.__pwaInstalled = true;
+          localStorage.setItem('quader_pwa_installed', 'true');
+        }
+      } catch (e) {}
       window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         window.__pwaInstallPrompt = e;
@@ -180,6 +191,10 @@
       window.addEventListener('appinstalled', function () {
         window.__pwaInstalled = true;
         window.__pwaInstallPrompt = null;
+        try {
+          localStorage.setItem('quader_pwa_installed', 'true');
+          localStorage.setItem('pwa_install_banner_dismissed', 'true');
+        } catch (e) {}
         window.dispatchEvent(new CustomEvent('pwa-app-installed'));
       });
     </script>
@@ -295,12 +310,12 @@
         outline-offset: 2px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-BlFQPidN.js"></script>
+    <script type="module" crossorigin src="/assets/index-D0wvtLkc.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-Ds2rZ66y.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-icons-Wkhtj8JK.js">
-    <link rel="preload" href="/assets/index-B6D-BwaJ.css" as="style" fetchpriority="high">
-    <link rel="stylesheet" href="/assets/index-B6D-BwaJ.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/assets/index-B6D-BwaJ.css"></noscript>
+    <link rel="preload" href="/assets/index-DvDnGuTe.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-DvDnGuTe.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-DvDnGuTe.css"></noscript>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <a href="#main-content" class="skip-link">Skip to main content</a>

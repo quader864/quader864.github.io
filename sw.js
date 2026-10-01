@@ -5,7 +5,7 @@
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v4.8.0';
+const SW_VERSION = 'v4.9.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -28,7 +28,8 @@ const PRECACHE_SHELL_URLS = [
   '/offline.html',
   '/sitemap.xml',
   '/robots.txt',
-  '/myiconArtboard-5.ico',
+  '/logo.svg',
+  '/favicon.ico',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-192.png',

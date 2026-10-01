@@ -23,6 +23,12 @@
   "prefer_related_applications": false,
   "icons": [
     {
+      "src": "/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
       "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",

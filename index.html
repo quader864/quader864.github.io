@@ -10,9 +10,9 @@
           var decoded = l.search.slice(1).split('&').map(function(s) { 
             return s.replace(/~and~/g, '&')
           }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
+          window.history.replaceState(null, null, '/#' + decoded + l.hash);
+        } else if (l.pathname && l.pathname !== '/' && l.pathname !== '/index.html' && (!l.hash || l.hash === '#' || l.hash === '#/')) {
+          window.history.replaceState(null, null, '/#' + l.pathname + l.search);
         }
       }(window.location));
     </script>
@@ -158,12 +158,12 @@
     }
     </script>
 
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg?v=5.1" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=5.1" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=5.1" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=5.1" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=5.1" />
+    <link rel="manifest" href="/manifest.json?v=5.1" />
     <meta name="theme-color" content="#6366f1" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -187,6 +187,10 @@
       window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         window.__pwaInstallPrompt = e;
+        window.__pwaInstalled = false;
+        try {
+          localStorage.removeItem('quader_pwa_installed');
+        } catch (err) {}
         window.dispatchEvent(new CustomEvent('pwa-install-prompt-ready', { detail: e }));
       });
       window.addEventListener('appinstalled', function () {
@@ -311,12 +315,12 @@
         outline-offset: 2px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-CzxOHZiY.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Ds2rZ66y.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-Dr-zZj8T.js">
-    <link rel="preload" href="/assets/index-DkgpmW27.css" as="style" fetchpriority="high">
-    <link rel="stylesheet" href="/assets/index-DkgpmW27.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/assets/index-DkgpmW27.css"></noscript>
+    <script type="module" crossorigin src="/assets/index-DdxElX4y.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Czg16fS4.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-router-zyQ_xoom.js">
+    <link rel="preload" href="/assets/index-D5_9nEpf.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-D5_9nEpf.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-D5_9nEpf.css"></noscript>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <a href="#main-content" class="skip-link">Skip to main content</a>

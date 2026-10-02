@@ -5,7 +5,7 @@
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v4.9.0';
+const SW_VERSION = 'v5.1.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -24,17 +24,17 @@ const CURRENT_CACHES = [
 const PRECACHE_SHELL_URLS = [
   '/',
   '/index.html',
-  '/manifest.json',
+  '/manifest.json?v=5.1',
   '/offline.html',
   '/sitemap.xml',
   '/robots.txt',
-  '/logo.svg',
-  '/favicon.ico',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable-192.png',
-  '/icon-maskable-512.png',
-  '/apple-touch-icon.png',
+  '/logo.svg?v=5.1',
+  '/favicon.ico?v=5.1',
+  '/icon-192.png?v=5.1',
+  '/icon-512.png?v=5.1',
+  '/icon-maskable-192.png?v=5.1',
+  '/icon-maskable-512.png?v=5.1',
+  '/apple-touch-icon.png?v=5.1',
   '/quader_picture.webp',
   '/fonts/inter-400-6.woff2',
   '/fonts/inter-600-20.woff2',
@@ -217,8 +217,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         try {
-          // Attempt network first to ensure fresh HTML
-          const networkResponse = await fetch(request);
+          // Attempt network first with no-store to ensure fresh HTML and up-to-date chunk references
+          const networkResponse = await fetch(request, { cache: 'no-store' });
           if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
             const cache = await caches.open(CACHE_SHELL);
             cache.put('/index.html', networkResponse.clone()).catch(() => {});
@@ -254,7 +254,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // ----------------------------------------------------------------------------
-  // Strategy B: JavaScript Chunks, CSS, and Build Assets (Stale-While-Revalidate)
+  // Strategy B: JavaScript Chunks, CSS, and Build Assets (Verified MIME Caching)
   // ----------------------------------------------------------------------------
   const isStaticAsset =
     request.destination === 'script' ||
@@ -271,38 +271,51 @@ self.addEventListener('fetch', (event) => {
       (async () => {
         const cache = await caches.open(CACHE_ASSETS);
 
-        // 1. Check direct cache match
+        // 1. Check direct cache match (ensure it is not a mistakenly cached HTML fallback)
         const cachedResponse = await cache.match(request);
+        if (cachedResponse) {
+          const cachedType = cachedResponse.headers.get('content-type') || '';
+          if (cachedType.includes('text/html')) {
+            await cache.delete(request).catch(() => {});
+          }
+        }
+
+        const validCached =
+          cachedResponse && !(cachedResponse.headers.get('content-type') || '').includes('text/html')
+            ? cachedResponse
+            : null;
 
         // 2. Fetch fresh version from network in parallel
         const fetchPromise = fetch(request)
           .then((networkResponse) => {
-            if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
-              cache.put(request, networkResponse.clone()).catch(() => {});
+            if (networkResponse && networkResponse.ok) {
+              const contentType = networkResponse.headers.get('content-type') || '';
+              // Never cache HTML 404 fallback pages as JS/CSS assets
+              if (!contentType.includes('text/html')) {
+                cache.put(request, networkResponse.clone()).catch(() => {});
+              }
             }
             return networkResponse;
           })
           .catch(async (fetchErr) => {
-            if (cachedResponse) {
-              return cachedResponse;
+            if (validCached) {
+              return validCached;
             }
-            // Loose match fallback (ignore query string)
             const looseMatch = await cache.match(request, { ignoreSearch: true });
-            if (looseMatch) {
+            if (looseMatch && !(looseMatch.headers.get('content-type') || '').includes('text/html')) {
               return looseMatch;
             }
             throw fetchErr;
           });
 
-        // If we have cached version, return immediately; otherwise wait for network
-        return cachedResponse || fetchPromise;
+        return validCached || fetchPromise;
       })()
     );
     return;
   }
 
   // ----------------------------------------------------------------------------
-  // Strategy C: Images and Media (Cache-First with Network Fallback)
+  // Strategy C: Images and Media (Network-First for Brand Icons, Cache-First for Content Images)
   // ----------------------------------------------------------------------------
   const isImage =
     request.destination === 'image' ||
@@ -312,11 +325,33 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('images.unsplash.com');
 
   if (isImage) {
+    const isBrandIcon =
+      url.pathname.includes('icon-') ||
+      url.pathname.includes('logo.svg') ||
+      url.pathname.includes('apple-touch-icon') ||
+      url.pathname.includes('favicon');
+
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_IMAGES);
-        const cachedResponse = await cache.match(request);
 
+        // Always fetch brand/notification icons network-first so logo updates appear immediately
+        if (isBrandIcon) {
+          try {
+            const freshIcon = await fetch(new Request(request, { cache: 'reload' }));
+            if (freshIcon && freshIcon.ok) {
+              cache.put(request, freshIcon.clone()).catch(() => {});
+              return freshIcon;
+            }
+          } catch (e) {}
+          const cachedIcon =
+            (await cache.match(request)) ||
+            (await cache.match(request, { ignoreSearch: true })) ||
+            (await caches.match(request, { ignoreSearch: true }));
+          if (cachedIcon) return cachedIcon;
+        }
+
+        const cachedResponse = await cache.match(request);
         if (cachedResponse) {
           return cachedResponse;
         }
@@ -479,18 +514,30 @@ self.addEventListener('message', (event) => {
 
   // Show rich notification directly from worker
   if (event.data.type === 'SHOW_NOTIFICATION') {
-    const { title, options } = event.data;
-    event.waitUntil(self.registration.showNotification(title, options));
+    const { title, options = {} } = event.data;
+    const finalOptions = {
+      ...options,
+      icon: '/icon-192.png?v=5.1',
+      badge: '/icon-192.png?v=5.1',
+      image: options.image ? '/icon-512.png?v=5.1' : undefined,
+    };
+    event.waitUntil(self.registration.showNotification(title, finalOptions));
   }
 
   // Schedule notification even when app/tab is closed
   if (event.data.type === 'SCHEDULE_NOTIFICATION') {
-    const { title, options, delayMs = 5000 } = event.data;
+    const { title, options = {}, delayMs = 5000 } = event.data;
+    const finalOptions = {
+      ...options,
+      icon: '/icon-192.png?v=5.1',
+      badge: '/icon-192.png?v=5.1',
+      image: options.image ? '/icon-512.png?v=5.1' : undefined,
+    };
     event.waitUntil(
       new Promise((resolve) => {
         setTimeout(async () => {
           try {
-            await self.registration.showNotification(title, options);
+            await self.registration.showNotification(title, finalOptions);
           } catch (err) {
             console.warn('[SW] Scheduled notification error:', err);
           }
@@ -508,9 +555,9 @@ self.addEventListener('push', (event) => {
   let payload = {
     title: '🌐 Check Out New Posts | Quader Portfolio',
     body: 'New quantitative engineering and web systems posts are live. Click to view now!',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    image: '/icon-512.png',
+    icon: '/icon-192.png?v=5.1',
+    badge: '/icon-192.png?v=5.1',
+    image: '/icon-512.png?v=5.1',
     data: { url: '/#/blog' },
     actions: [
       { action: 'open-blog', title: 'Check Out Posts' },
@@ -530,9 +577,9 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: payload.icon || '/icon-192.png',
-      badge: payload.badge || '/icon-192.png',
-      image: payload.image || '/icon-512.png',
+      icon: '/icon-192.png?v=5.1',
+      badge: '/icon-192.png?v=5.1',
+      image: '/icon-512.png?v=5.1',
       vibrate: [200, 100, 200, 100, 200],
       requireInteraction: true,
       tag: payload.tag || 'quader-push-notification',
@@ -700,8 +747,8 @@ async function processBackgroundCommentSync() {
           try {
             await self.registration.showNotification('💬 Blog Comment Published!', {
               body: `Your comment on "${comment.postSlug}" was synced in the background.`,
-              icon: '/icon-192.png',
-              badge: '/icon-192.png',
+              icon: '/icon-192.png?v=5.1',
+              badge: '/icon-192.png?v=5.1',
               tag: `comment-synced-${comment.id}`,
               data: { url: `/#/blog/${comment.postSlug}` },
             });
@@ -736,9 +783,9 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(
       self.registration.showNotification('🌐 Back Online: Check Out New Posts!', {
         body: 'You are reconnected to the internet. Explore new quantitative insights and blog posts on Quader Systems.',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        image: '/icon-512.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
+        image: '/icon-512.png?v=5.1',
         vibrate: [200, 100, 200, 100, 200],
         requireInteraction: true,
         tag: 'reconnected-notification',
@@ -764,8 +811,8 @@ async function runBackgroundVersionCheck() {
     try {
       await self.registration.showNotification('Quader Portfolio', {
         body: 'waiting for network',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
         tag: 'sw-update-status',
         renotify: true,
       });
@@ -782,8 +829,8 @@ async function runBackgroundVersionCheck() {
     if (!response || !response.ok) {
       await self.registration.showNotification('Quader Portfolio', {
         body: 'waiting for network',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
         tag: 'sw-update-status',
         renotify: true,
       });
@@ -794,8 +841,8 @@ async function runBackgroundVersionCheck() {
     if (reg.waiting || reg.installing) {
       await self.registration.showNotification('Quader Portfolio', {
         body: 'needs to be updated press to update',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
         tag: 'sw-update-status',
         renotify: true,
         data: { action: 'update', url: '/#/' },
@@ -806,8 +853,8 @@ async function runBackgroundVersionCheck() {
     } else {
       await self.registration.showNotification('Quader Portfolio', {
         body: 'the app is updated',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
         tag: 'sw-update-status',
         renotify: true,
       });
@@ -816,8 +863,8 @@ async function runBackgroundVersionCheck() {
     try {
       await self.registration.showNotification('Quader Portfolio', {
         body: 'waiting for network',
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
+        icon: '/icon-192.png?v=5.1',
+        badge: '/icon-192.png?v=5.1',
         tag: 'sw-update-status',
         renotify: true,
       });

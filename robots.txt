@@ -1,8 +1,13 @@
 # Robots.txt for Alireza "Quader" Kiani & Quader Systems
 User-agent: *
 Allow: /
-Disallow: /password-reset
-Disallow: /blog/editor
+Disallow: /#/password-reset
+Disallow: /#/reset-password
+Disallow: /#/auth/reset-password
+Disallow: /#/blog/editor
+Disallow: /#/blog/create
+Disallow: /#/blog/edit
+Disallow: /#/dashboard
 
 # Sitemap location
 Sitemap: https://quader864.ir/sitemap.xml

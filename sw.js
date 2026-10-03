@@ -5,7 +5,7 @@
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
 
-const SW_VERSION = 'v5.1.0';
+const SW_VERSION = 'v5.2.0';
 const CACHE_SHELL = `quader-shell-${SW_VERSION}`;
 const CACHE_ASSETS = `quader-assets-${SW_VERSION}`;
 const CACHE_IMAGES = `quader-images-${SW_VERSION}`;
@@ -239,14 +239,60 @@ self.addEventListener('fetch', (event) => {
           return cachedShell;
         }
 
-        const cachedOffline = await caches.match('/offline.html');
+        const cachedOffline =
+          (await caches.match('/offline.html')) ||
+          (await caches.match('/offline.html', { ignoreSearch: true }));
         if (cachedOffline) {
           return cachedOffline;
         }
 
         return new Response(
-          '<!DOCTYPE html><html><head><title>Quader Portfolio</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="background:#020617;color:#fff;font-family:sans-serif;padding:2rem;text-align:center;"><h1>Quader Portfolio</h1><p>Offline App Shell loading...</p><a href="/" style="color:#38bdf8;">Reload</a></body></html>',
-          { headers: { 'Content-Type': 'text/html' } }
+          `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline | Quader Portfolio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #020617; color: #f8fafc; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; padding: 1.5rem; text-align: center; }
+    .card { max-width: 440px; width: 100%; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 1.25rem; padding: 2.25rem 1.75rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .icon { width: 56px; height: 56px; margin: 0 auto 1.25rem auto; color: #38bdf8; display: block; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: #ffffff; line-height: 1.25; }
+    p { font-size: 0.95rem; line-height: 1.6; color: #94a3b8; margin-bottom: 1.75rem; }
+    .btn-group { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0.7rem 1.5rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color 0.2s, transform 0.1s; border: none; flex: 1 1 140px; }
+    .btn-primary { background: #38bdf8; color: #020617; }
+    .btn-primary:hover { background: #7dd3fc; }
+    .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    .btn-secondary:hover { background: #334155; color: #ffffff; }
+    .btn:active { transform: scale(0.98); }
+  </style>
+  <script>
+    window.addEventListener('online', function() { window.location.href = '/#/'; });
+  </script>
+</head>
+<body>
+  <div class="card" role="main">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+      <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+      <line x1="12" y1="20" x2="12.01" y2="20"></line>
+    </svg>
+    <h1>You're Offline</h1>
+    <p>This page was not cached before going offline. Connect to the internet to load this page, or return to the cached homepage.</p>
+    <div class="btn-group">
+      <a href="/#/" class="btn btn-primary">Go to Home</a>
+      <button type="button" onclick="window.location.reload();" class="btn btn-secondary">Retry</button>
+    </div>
+  </div>
+</body>
+</html>`,
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
         );
       })()
     );

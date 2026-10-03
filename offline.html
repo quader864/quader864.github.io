@@ -69,8 +69,27 @@
       text-decoration: none;
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
-    .btn:hover {
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: #38bdf8;
+      color: #030712;
+    }
+    .btn-primary:hover {
       background: #7dd3fc;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f3f4f6;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
     }
     .btn:active {
       transform: scale(0.98);
@@ -80,6 +99,11 @@
       outline-offset: 3px;
     }
   </style>
+  <script>
+    window.addEventListener('online', function() {
+      window.location.href = '/#/';
+    });
+  </script>
 </head>
 <body>
   <div class="container" role="main">
@@ -94,9 +118,12 @@
     </svg>
     <h1>You're Offline</h1>
     <p>It looks like you've lost your internet connection. Cached pages may still be accessible once you reconnect.</p>
-    <button class="btn" onclick="window.location.reload();" aria-label="Retry connection and reload page">
-      Retry Connection
-    </button>
+    <div class="btn-group">
+      <a href="/#/" class="btn btn-primary">Go to Home Page</a>
+      <button class="btn btn-secondary" onclick="window.location.reload();" aria-label="Retry connection and reload page">
+        Retry Connection
+      </button>
+    </div>
   </div>
 </body>
 </html>

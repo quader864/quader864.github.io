@@ -16,44 +16,6 @@
         }
       }(window.location));
     </script>
-    <script>
-      (function() {
-        try {
-          var host = window.location.hostname;
-          var isRestricted = host.includes('run.app') || 
-                             host.includes('ais-dev-') || 
-                             host.includes('ais-pre-') || 
-                             host.includes('aistudio') || 
-                             host === 'localhost' || 
-                             host === '127.0.0.1' || 
-                             window.location.port === '3000';
-
-          if ('serviceWorker' in navigator && isRestricted) {
-            var hadController = !!navigator.serviceWorker.controller;
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-              if (registrations.length > 0) {
-                var unregisters = registrations.map(function(reg) {
-                  return reg.unregister();
-                });
-                return Promise.all(unregisters).then(function() {
-                  if ('caches' in window) {
-                    return caches.keys().then(function(keys) {
-                      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
-                    });
-                  }
-                }).then(function() {
-                  if (hadController && !sessionStorage.getItem('__sw_purged_reload')) {
-                    sessionStorage.setItem('__sw_purged_reload', 'true');
-                    window.location.reload();
-                  }
-                });
-              }
-            }).catch(function() {});
-          }
-        } catch(e) {}
-      })();
-    </script>
-    
     <!-- Primary Meta Tags & SEO -->
     <title>Alireza "Quader" Kiani | Portfolio & Quantitative Systems</title>
     <meta name="title" content="Alireza &quot;Quader&quot; Kiani | Portfolio &amp; Quantitative Systems" />
@@ -315,7 +277,7 @@
         outline-offset: 2px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-D-yUaeKG.js"></script>
+    <script type="module" crossorigin src="/assets/index-D3fTETWU.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-Czg16fS4.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-router-zyQ_xoom.js">
     <link rel="preload" href="/assets/index-CcQHkh58.css" as="style" fetchpriority="high">

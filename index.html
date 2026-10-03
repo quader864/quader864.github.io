@@ -190,6 +190,8 @@
         window.__pwaInstalled = false;
         try {
           localStorage.removeItem('quader_pwa_installed');
+          localStorage.removeItem('pwa_install_banner_dismissed');
+          sessionStorage.removeItem('pwa_install_banner_dismissed');
         } catch (err) {}
         window.dispatchEvent(new CustomEvent('pwa-install-prompt-ready', { detail: e }));
       });
@@ -313,12 +315,12 @@
         outline-offset: 2px;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-Ci-b_oqm.js"></script>
+    <script type="module" crossorigin src="/assets/index-D-yUaeKG.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-Czg16fS4.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-router-zyQ_xoom.js">
-    <link rel="preload" href="/assets/index-Dw5HrZ3s.css" as="style" fetchpriority="high">
-    <link rel="stylesheet" href="/assets/index-Dw5HrZ3s.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="/assets/index-Dw5HrZ3s.css"></noscript>
+    <link rel="preload" href="/assets/index-CcQHkh58.css" as="style" fetchpriority="high">
+    <link rel="stylesheet" href="/assets/index-CcQHkh58.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/assets/index-CcQHkh58.css"></noscript>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
     <a href="#main-content" class="skip-link">Skip to main content</a>

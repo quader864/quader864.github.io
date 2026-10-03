@@ -217,8 +217,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         try {
-          // Attempt network first with no-store to ensure fresh HTML and up-to-date chunk references
-          const networkResponse = await fetch(request, { cache: 'no-store' });
+          // Attempt network first (do NOT pass RequestInit to a navigate request, as it throws TypeError in WHATWG Fetch)
+          const networkResponse = await fetch(request);
           if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
             const cache = await caches.open(CACHE_SHELL);
             cache.put('/index.html', networkResponse.clone()).catch(() => {});

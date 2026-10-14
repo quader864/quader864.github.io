@@ -1,6 +1,6 @@
 // ==============================================================================
 // Quader Portfolio - Scalable High-Performance Offline Service Worker
-// Version: v4.6.0
+// Version: v5.2.0
 // Architecture: Multi-Tier Cache-First / Stale-While-Revalidate with SPA Fallback
 // & 6-Hour Periodic Background Sync API for Autonomous Device-Side Checks
 // ==============================================================================
@@ -24,6 +24,7 @@ const CURRENT_CACHES = [
 const PRECACHE_SHELL_URLS = [
   '/',
   '/index.html',
+  '/manifest.json',
   '/manifest.json?v=5.1',
   '/offline.html',
   '/sitemap.xml',
@@ -592,6 +593,11 @@ self.addEventListener('message', (event) => {
       })
     );
   }
+
+  // Trigger 6-hour background version check on demand
+  if (event.data.type === 'RUN_BACKGROUND_VERSION_CHECK') {
+    event.waitUntil(runBackgroundVersionCheck());
+  }
 });
 
 // ------------------------------------------------------------------------------
@@ -919,16 +925,6 @@ async function runBackgroundVersionCheck() {
     }
   }
 }
-
-self.addEventListener('message', (event) => {
-  if (!event.data) return;
-  if (event.data.type === 'RUN_BACKGROUND_VERSION_CHECK') {
-    event.waitUntil(runBackgroundVersionCheck());
-  }
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
 
 self.addEventListener('periodicsync', (event) => {
   console.log(`[SW] Periodic background sync event fired: tag="${event.tag}"`);

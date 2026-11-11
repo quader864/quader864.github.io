@@ -601,115 +601,138 @@ self.addEventListener('message', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 5. Web Push Notification Event
+// 5. Web Push Notification Event (Backend Automated Post Publishing)
 // ------------------------------------------------------------------------------
 self.addEventListener('push', (event) => {
+  console.log('[SW Push] Push event received from Web Push server');
+
+  // Safe default fallback payload
   let payload = {
-    title: '🌐 Check Out New Posts | Quader Portfolio',
-    body: 'New quantitative engineering and web systems posts are live. Click to view now!',
+    title: 'New Article Published | Quader Portfolio',
+    body: 'A new quantitative engineering post has been published. Tap to read now!',
     icon: '/icon-192.png?v=5.1',
     badge: '/icon-192.png?v=5.1',
     image: '/icon-512.png?v=5.1',
     data: { url: '/#/blog' },
     actions: [
-      { action: 'open-blog', title: 'Check Out Posts' },
-      { action: 'open-app', title: 'Open App' },
-      { action: 'play-audio', title: 'Play Audio' }
-    ]
+      { action: 'read-post', title: 'Read Article' },
+      { action: 'open-app', title: 'Open Portfolio' },
+    ],
   };
 
   if (event.data) {
     try {
-      payload = { ...payload, ...event.data.json() };
-    } catch {
-      payload.body = event.data.text() || payload.body;
+      const parsed = event.data.json();
+      if (parsed && typeof parsed === 'object') {
+        const postSlug = parsed.postSlug || parsed.slug;
+        const postUrl = parsed.url || (postSlug ? `/#/blog/${postSlug}` : '/#/blog');
+        const excerpt = parsed.body || parsed.excerpt || parsed.summary || parsed.content || payload.body;
+        const title = parsed.title || parsed.postTitle || payload.title;
+
+        payload = {
+          title,
+          body: excerpt,
+          icon: parsed.icon || '/icon-192.png?v=5.1',
+          badge: parsed.badge || '/icon-192.png?v=5.1',
+          image: parsed.image || parsed.coverImageUrl || '/icon-512.png?v=5.1',
+          tag: parsed.tag || (postSlug ? `quader-post-${postSlug}` : 'quader-push-notification'),
+          data: {
+            url: postUrl,
+            postSlug,
+            postId: parsed.postId || parsed.id,
+            timestamp: Date.now(),
+            ...parsed.data,
+          },
+          actions: parsed.actions || [
+            { action: 'read-post', title: 'Read Article' },
+            { action: 'open-app', title: 'Open Portfolio' },
+          ],
+        };
+      }
+    } catch (parseError) {
+      // Plain text payload fallback
+      const rawText = event.data.text();
+      if (rawText && rawText.trim()) {
+        payload.body = rawText.trim();
+      }
     }
   }
 
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/icon-192.png?v=5.1',
-      badge: '/icon-192.png?v=5.1',
-      image: '/icon-512.png?v=5.1',
+      icon: payload.icon || '/icon-192.png?v=5.1',
+      badge: payload.badge || '/icon-192.png?v=5.1',
+      image: payload.image || '/icon-512.png?v=5.1',
       vibrate: [200, 100, 200, 100, 200],
       requireInteraction: true,
       tag: payload.tag || 'quader-push-notification',
       renotify: true,
       data: payload.data || { url: '/#/blog' },
       actions: payload.actions || [
-        { action: 'open-blog', title: 'Check Out Posts' },
-        { action: 'open-app', title: 'Open App' },
-        { action: 'play-audio', title: 'Play Audio' }
-      ]
+        { action: 'read-post', title: 'Read Article' },
+        { action: 'open-app', title: 'Open Portfolio' },
+      ],
     })
   );
 });
 
 // ------------------------------------------------------------------------------
-// 6. Notification Click & Action Routing
+// 6. Notification Click & Safe Origin-Bounded Navigation
 // ------------------------------------------------------------------------------
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
   const action = event.action;
   const data = event.notification.data || {};
-  let targetUrl = '/#/';
+  let rawDestination = data.url || '/#/blog';
 
-  if (action === 'update' || data.action === 'update') {
+  if (action === 'open-app') {
+    rawDestination = '/#/';
+  } else if (action === 'read-post' || !action) {
+    rawDestination = data.url || '/#/blog';
+  } else if (action === 'open-blog') {
+    rawDestination = '/#/blog';
+  } else if (action === 'update' || data.action === 'update') {
     self.skipWaiting();
-    event.waitUntil(
-      (async () => {
-        const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-        for (const client of allClients) {
-          if ('focus' in client) {
-            client.postMessage({ type: 'PERFORM_UPDATE_RELOAD' });
-            await client.focus();
-            if ('navigate' in client) {
-              await client.navigate('/#/');
-            }
-            return;
-          }
-        }
-        if (self.clients.openWindow) {
-          await self.clients.openWindow('/#/');
-        }
-      })()
-    );
-    return;
+    rawDestination = '/#/';
   }
 
-  if (action === 'open-blog') {
-    targetUrl = '/#/blog';
-  } else if (action === 'open-app') {
-    targetUrl = '/#/';
-  } else if (data.url) {
-    targetUrl = data.url;
+  // Validate that destination strictly belongs to our website
+  let resolvedUrl = new URL(rawDestination, self.location.origin);
+  if (resolvedUrl.origin !== self.location.origin) {
+    console.warn('[SW Notification] Untrusted external destination blocked:', rawDestination);
+    resolvedUrl = new URL('/#/', self.location.origin);
   }
+  const targetHref = resolvedUrl.href;
 
   event.waitUntil(
     (async () => {
+      // Find any existing matching window under this origin to avoid opening duplicate tabs
       const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-
       for (const client of allClients) {
-        if ('focus' in client) {
-          if (action === 'play-audio') {
-            client.postMessage({ type: 'PLAY_NOTIFICATION_AUDIO' });
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.origin === self.location.origin) {
+            // Focus and navigate existing matching tab
+            if ('focus' in client) {
+              await client.focus();
+            }
+            if ('navigate' in client) {
+              await client.navigate(targetHref);
+            } else {
+              client.postMessage({ type: 'NAVIGATE_TO', url: targetHref });
+            }
+            return;
           }
-          await client.focus();
-          if ('navigate' in client && targetUrl) {
-            await client.navigate(targetUrl);
-          }
-          return;
+        } catch (e) {
+          // Continue to next client
         }
       }
 
+      // No open client found: open a single clean window to the post URL
       if (self.clients.openWindow) {
-        const newClient = await self.clients.openWindow(targetUrl);
-        if (newClient && action === 'play-audio') {
-          setTimeout(() => {
-            newClient.postMessage({ type: 'PLAY_NOTIFICATION_AUDIO' });
-          }, 800);
-        }
+        await self.clients.openWindow(targetHref);
       }
     })()
   );

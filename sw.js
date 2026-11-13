@@ -601,95 +601,150 @@ self.addEventListener('message', (event) => {
 });
 
 // ------------------------------------------------------------------------------
-// 5. Web Push Notification Event (Backend Automated Post Publishing)
+// 5. Web Push Notification Event (New Posts & Admin Announcements)
 // ------------------------------------------------------------------------------
 self.addEventListener('push', (event) => {
   console.log('[SW Push] Push event received from Web Push server');
 
   // Safe default fallback payload
-  let payload = {
-    title: 'New Article Published | Quader Portfolio',
-    body: 'A new quantitative engineering post has been published. Tap to read now!',
-    icon: '/icon-192.png?v=5.1',
-    badge: '/icon-192.png?v=5.1',
-    image: '/icon-512.png?v=5.1',
-    data: { url: '/#/blog' },
-    actions: [
-      { action: 'read-post', title: 'Read Article' },
-      { action: 'open-app', title: 'Open Portfolio' },
-    ],
-  };
+  let title = 'New Notification | Quader Portfolio';
+  let body = 'Tap to view the latest update on Quader Portfolio.';
+  let icon = '/icon-192.png?v=5.1';
+  let badge = '/icon-192.png?v=5.1';
+  let image;
+  let tag = 'quader-push-notification';
+  let targetUrl = '/#/blog';
+  let extraData = {};
+  let actions = [
+    { action: 'open-target', title: 'View' },
+    { action: 'open-app', title: 'Open Site' },
+  ];
 
   if (event.data) {
     try {
       const parsed = event.data.json();
       if (parsed && typeof parsed === 'object') {
-        const postSlug = parsed.postSlug || parsed.slug;
-        const postUrl = parsed.url || (postSlug ? `/#/blog/${postSlug}` : '/#/blog');
-        const excerpt = parsed.body || parsed.excerpt || parsed.summary || parsed.content || payload.body;
-        const title = parsed.title || parsed.postTitle || payload.title;
+        const nested = parsed.data && typeof parsed.data === 'object' ? parsed.data : {};
+        const postSlug = parsed.postSlug || parsed.slug || nested.postSlug || nested.slug;
 
-        payload = {
-          title,
-          body: excerpt,
-          icon: parsed.icon || '/icon-192.png?v=5.1',
-          badge: parsed.badge || '/icon-192.png?v=5.1',
-          image: parsed.image || parsed.coverImageUrl || '/icon-512.png?v=5.1',
-          tag: parsed.tag || (postSlug ? `quader-post-${postSlug}` : 'quader-push-notification'),
-          data: {
-            url: postUrl,
-            postSlug,
-            postId: parsed.postId || parsed.id,
-            timestamp: Date.now(),
-            ...parsed.data,
-          },
-          actions: parsed.actions || [
-            { action: 'read-post', title: 'Read Article' },
-            { action: 'open-app', title: 'Open Portfolio' },
-          ],
+        title = parsed.title || parsed.postTitle || title;
+        body = parsed.body || parsed.excerpt || parsed.summary || parsed.content || body;
+        icon = parsed.icon || icon;
+        badge = parsed.badge || badge;
+
+        // Only attach optional image when provided by backend/payload
+        const rawImage = parsed.image || parsed.imageUrl || parsed.coverImageUrl || nested.image;
+        if (typeof rawImage === 'string' && rawImage.trim()) {
+          image = rawImage.trim();
+        }
+
+        tag =
+          parsed.tag ||
+          nested.tag ||
+          (postSlug ? `quader-post-${postSlug}` : tag);
+
+        const rawUrl = parsed.url || nested.url;
+        if (typeof rawUrl === 'string' && rawUrl.trim()) {
+          targetUrl = rawUrl.trim();
+        } else if (postSlug) {
+          targetUrl = `/#/blog/${postSlug}`;
+        }
+
+        if (Array.isArray(parsed.actions)) {
+          actions = parsed.actions;
+        }
+
+        extraData = {
+          ...nested,
+          postSlug,
+          postId: parsed.postId || parsed.id || nested.postId,
         };
       }
     } catch (parseError) {
       // Plain text payload fallback
-      const rawText = event.data.text();
-      if (rawText && rawText.trim()) {
-        payload.body = rawText.trim();
+      try {
+        const rawText = event.data.text();
+        if (rawText && rawText.trim()) {
+          body = rawText.trim();
+        }
+      } catch (e) {
+        // Keep safe defaults
       }
     }
   }
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon: payload.icon || '/icon-192.png?v=5.1',
-      badge: payload.badge || '/icon-192.png?v=5.1',
-      image: payload.image || '/icon-512.png?v=5.1',
-      vibrate: [200, 100, 200, 100, 200],
-      requireInteraction: true,
-      tag: payload.tag || 'quader-push-notification',
-      renotify: true,
-      data: payload.data || { url: '/#/blog' },
-      actions: payload.actions || [
-        { action: 'read-post', title: 'Read Article' },
-        { action: 'open-app', title: 'Open Portfolio' },
-      ],
-    })
-  );
+  const notificationOptions = {
+    body,
+    icon,
+    badge,
+    vibrate: [200, 100, 200],
+    requireInteraction: true,
+    tag,
+    renotify: true,
+    data: {
+      ...extraData,
+      url: targetUrl,
+      timestamp: Date.now(),
+    },
+    actions,
+  };
+
+  if (image) {
+    notificationOptions.image = image;
+  }
+
+  event.waitUntil(self.registration.showNotification(title, notificationOptions));
 });
 
 // ------------------------------------------------------------------------------
-// 6. Notification Click & Safe Origin-Bounded Navigation
+// 6. Notification Click & Safe Destination Navigation
 // ------------------------------------------------------------------------------
+function normalizeNotificationUrl(rawDestination) {
+  const trimmed = typeof rawDestination === 'string' ? rawDestination.trim() : '';
+  if (!trimmed) {
+    return new URL('/#/', self.location.origin);
+  }
+
+  try {
+    const resolved = new URL(trimmed, self.location.origin);
+    const isSameOrigin = resolved.origin === self.location.origin;
+    const isTrustedQuaderDomain =
+      resolved.protocol === 'https:' &&
+      (resolved.hostname === 'quader864.ir' || resolved.hostname.endsWith('.quader864.ir'));
+
+    if (!isSameOrigin && !isTrustedQuaderDomain) {
+      console.warn('[SW Notification] Untrusted external destination blocked:', trimmed);
+      return new URL('/#/', self.location.origin);
+    }
+
+    // If pointing to a client-side route on this HashRouter SPA without a hash, route via /#/
+    if (
+      isSameOrigin &&
+      resolved.pathname &&
+      resolved.pathname !== '/' &&
+      resolved.pathname !== '/index.html' &&
+      !resolved.hash &&
+      !resolved.pathname.includes('.')
+    ) {
+      return new URL(`/#${resolved.pathname}${resolved.search}`, self.location.origin);
+    }
+
+    return resolved;
+  } catch (err) {
+    return new URL('/#/', self.location.origin);
+  }
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const action = event.action;
   const data = event.notification.data || {};
-  let rawDestination = data.url || '/#/blog';
+  let rawDestination = data.url || '/#/';
 
   if (action === 'open-app') {
     rawDestination = '/#/';
-  } else if (action === 'read-post' || !action) {
+  } else if (action === 'read-post' || action === 'open-target' || !action) {
     rawDestination = data.url || '/#/blog';
   } else if (action === 'open-blog') {
     rawDestination = '/#/blog';
@@ -698,39 +753,35 @@ self.addEventListener('notificationclick', (event) => {
     rawDestination = '/#/';
   }
 
-  // Validate that destination strictly belongs to our website
-  let resolvedUrl = new URL(rawDestination, self.location.origin);
-  if (resolvedUrl.origin !== self.location.origin) {
-    console.warn('[SW Notification] Untrusted external destination blocked:', rawDestination);
-    resolvedUrl = new URL('/#/', self.location.origin);
-  }
+  const resolvedUrl = normalizeNotificationUrl(rawDestination);
   const targetHref = resolvedUrl.href;
+  const isSameOrigin = resolvedUrl.origin === self.location.origin;
 
   event.waitUntil(
     (async () => {
-      // Find any existing matching window under this origin to avoid opening duplicate tabs
-      const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      for (const client of allClients) {
-        try {
-          const clientUrl = new URL(client.url);
-          if (clientUrl.origin === self.location.origin) {
-            // Focus and navigate existing matching tab
-            if ('focus' in client) {
-              await client.focus();
+      if (isSameOrigin) {
+        const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of allClients) {
+          try {
+            const clientUrl = new URL(client.url);
+            if (clientUrl.origin === self.location.origin) {
+              if ('focus' in client) {
+                await client.focus();
+              }
+              if (resolvedUrl.hash && clientUrl.pathname === resolvedUrl.pathname) {
+                client.postMessage({ type: 'NAVIGATE_TO', url: targetHref, hash: resolvedUrl.hash });
+              }
+              if ('navigate' in client) {
+                await client.navigate(targetHref);
+              }
+              return;
             }
-            if ('navigate' in client) {
-              await client.navigate(targetHref);
-            } else {
-              client.postMessage({ type: 'NAVIGATE_TO', url: targetHref });
-            }
-            return;
+          } catch (e) {
+            // Continue checking remaining clients
           }
-        } catch (e) {
-          // Continue to next client
         }
       }
 
-      // No open client found: open a single clean window to the post URL
       if (self.clients.openWindow) {
         await self.clients.openWindow(targetHref);
       }
